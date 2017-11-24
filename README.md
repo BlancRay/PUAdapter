@@ -1,9 +1,9 @@
-# TWO PU-learning tool on spark
+# TWO PU-learning tools on spark
 ## PUAdapter
 A set of machine learning tools and algorithms for learning from positive and unlabeled datasets.
 
 This algorithm is based on Positive Samples are Completely Random Selected, and "a classifier trained on positive and
-unlabeled examples predicts probabilities that dier by only a constant factor from
+unlabeled examples predicts probabilities that differ by only a constant factor from
 the true conditional probabilities of being positive."
 
 Original paper:
