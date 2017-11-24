@@ -1,7 +1,7 @@
 package com.zzy
 
 import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.spark.ml.linalg.DenseVector
+import org.apache.spark.mllib.linalg.DenseVector
 import org.apache.spark.mllib.linalg.{Vector, Vectors}
 import org.apache.spark.mllib.regression.LabeledPoint
 

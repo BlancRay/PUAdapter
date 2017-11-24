@@ -40,7 +40,7 @@ object RandomForestTrain {
 
     println("Model save")
     save(model, estC, sc)
-
+//    sc.newAPIHadoopRDD
     sc.stop()
   }
 
