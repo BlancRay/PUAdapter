@@ -1,10 +1,11 @@
 package com.zzy
 
+import java.io.{BufferedInputStream, File, FileInputStream, Reader}
 import java.util
 import java.util.Properties
 
-import org.apache.spark.{SparkConf, SparkContext}
 import net.sf.json.{JSONArray, JSONObject}
+import org.apache.spark.{SparkConf, SparkContext}
 import org.slf4j.LoggerFactory
 
 
@@ -18,12 +19,18 @@ object rf {
     * @param args Array[String] 模型id
     */
   def main(args: Array[String]): Unit = {
+    LOG.info("\n\n\n调用算法训练模型")
+
     //设置hadoop目录
+//    System.setProperty("hadoop.home.dir", "E:\\xulei\\hadoop2.6.0")
+//    val modelid = "16"
+//    val sc = new SparkContext(new SparkConf().setAppName("RandomForestClassificationTrain").setMaster("local[4]"))
+//    prop.load(new BufferedInputStream(new FileInputStream("E:\\xulei\\IdeaProjects\\demo\\model.properties")))
+
     val modelid = args(0)
-    val path = this.getClass().getResourceAsStream("/model.properties")
-    val sc = new SparkContext(new SparkConf().setAppName("RandomForestClassificationTrain").setMaster("local[4]"))
-    prop.load(path)
-    LOG.info("调用算法训练模型")
+    val sc = new SparkContext(new SparkConf().setAppName("RandomForestClassificationTrain"))
+    prop.load(new BufferedInputStream(new FileInputStream(args(1))))
+
     tool.log(modelid, "调用算法训练模型开始", "1", prop.getProperty("log"))
     //read model info
     //    val params = new util.HashMap[String, String]()
@@ -69,7 +76,8 @@ object rf {
         importance_mapArray.add(json_obj)
       }
 
-      LOG.info(importance_mapArray.toString)
+      LOG.info(feature_importance.toList.sortBy(_._2).toString)
+      LOG.info("写入模型影响因子")
       tool.postArrayToURL(modelid, prop.getProperty("influence"), importance_mapArray)
 
       LOG.info("开始计算相似度")
@@ -86,11 +94,15 @@ object rf {
         json_obj.put("num", similarity(i).toString)
         similarity_mapArray.add(json_obj)
       }
+      LOG.info("相似度计算完成，写入数据库中")
       tool.postArrayToURL(modelid, prop.getProperty("similar"), similarity_mapArray)
       tool.log(modelid, "模型训练完成", "2", prop.getProperty("log"))
+      LOG.info("模型训练完成\n\n\n\n")
     } catch {
       case e: Throwable => tool.log(modelid, "模型训练错误", "-1", prop.getProperty("log"))
-        LOG.error("模型训练错误"+e.toString)
+        LOG.error("模型训练错误\n"+e.toString)
+        LOG.error(e.getMessage)
+        LOG.error(e.getCause.toString)
         }
   }
 }
