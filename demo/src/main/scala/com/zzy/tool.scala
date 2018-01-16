@@ -1,12 +1,10 @@
 package com.zzy
 
-import com.zzy.rf.prop
-import com.zzy.rf.modelIdMap
-import com.zzy.rf.LOG
 import java.text.SimpleDateFormat
 import java.util
 import java.util.Date
 
+import com.zzy.rf.{LOG, modelIdMap, prop}
 import net.sf.json.{JSONArray, JSONObject}
 import org.apache.hadoop.hbase.HBaseConfiguration
 import org.apache.hadoop.hbase.client.{ConnectionFactory, Scan}
@@ -75,9 +73,14 @@ object tool {
       val GID_TAG_split = new scala.collection.mutable.HashMap[Int, Double]()
       if (hbaseresult != "") {
         val GID_TAG_SET = hbaseresult.split(";")
+        var is_time=true
         GID_TAG_SET.foreach { each =>
           val tag_split = each.split(":")
-          GID_TAG_split.put(tag_split(0).toInt, tag_split(1).toDouble)
+          if(is_time){
+            GID_TAG_split.put(tag_split(0).toInt, tag_split(1).toDouble/3600000)
+            is_time=false
+          }else
+            GID_TAG_split.put(tag_split(0).toInt, tag_split(1).toDouble)
         }
       }
       //      println(rowkey,hbaseresult)
@@ -152,7 +155,7 @@ object tool {
   }
 
   def postDataToURL(url: String, params: util.HashMap[String, String]): String = {
-    val conn = Jsoup.connect(url).timeout(30000).ignoreContentType(true)
+    val conn = Jsoup.connect(url).timeout(45000).ignoreContentType(true)
     conn.data(params).post().body().text()
   }
 
