@@ -1,7 +1,6 @@
 package com.zzy
 
-import com.zzy.rf.prop
-import com.zzy.rf.LOG
+import com.zzy.rf.{LOG, prop}
 import net.sf.json.JSONObject
 import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.mllib.tree.RandomForest
