@@ -7,6 +7,7 @@ import org.apache.spark.mllib.tree.model.RandomForestModel
 import org.apache.spark.rdd.RDD
 
 import scala.util.parsing.json.JSON
+import tagModel.{LOG, prop}
 
 protected object fit {
   /**
