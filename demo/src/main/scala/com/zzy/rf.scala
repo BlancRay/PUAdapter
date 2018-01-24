@@ -6,6 +6,7 @@ import java.util.Properties
 
 import net.sf.json.{JSONArray, JSONObject}
 import org.apache.spark.{SparkConf, SparkContext}
+import org.jsoup.HttpStatusException
 import org.slf4j.LoggerFactory
 
 object rf {
@@ -118,11 +119,11 @@ object rf {
       tool.log(modelid, "模型训练完成", "2", prop.getProperty("log"))
       LOG.info("模型训练完成\n\n\n\n")
     } catch {
+      case httpError: HttpStatusException =>
+        LOG.error("服务器错误，Status code：" + httpError.getStatusCode)
       case e: Throwable =>
         tool.log(modelid, "模型训练错误", "-1", prop.getProperty("log"))
-        LOG.error("模型训练错误\n" + e.toString)
-        LOG.error(e.getMessage)
-        LOG.error(e.getCause.toString)
+        LOG.error("模型训练错误\n" + e.printStackTrace())
     }
   }
 }
