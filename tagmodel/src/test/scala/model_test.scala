@@ -12,7 +12,7 @@ protected object model_test {
     * @param estC  Double c
     * @return RDD[Double] 预测概率
     */
-  def evaluate(model: RandomForestModel, estC: Double, modelid: String, sc: SparkContext, nbTagFeatures: Int): RDD[Double] = {
+  def evaluate(model: RandomForestModel, estC: Double, sc: SparkContext, nbTagFeatures: Int): RDD[Double] = {
     //    tool.log(modelid, "生成模型测试数据", "1", prop.getProperty("log"))
     //    val (_, test_data) = tool.read_convert(modelid, "N_SOURCE", sc, nbTagFeatures)
     val test_data = readData(sc, sc.textFile("E:\\xulei\\zhiziyun\\model\\test\\train_P_label").collect(), "N")
