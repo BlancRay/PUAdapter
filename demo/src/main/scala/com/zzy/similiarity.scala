@@ -12,24 +12,16 @@ protected object similiarity {
     * @return similarity mutable.Map[Double, Int]() (相似度,个体数量)
     */
   def statistics(proba: Array[Double], threshold: Double, ratio: Double): mutable.Map[Double, Int] = {
-    val sn: Int = (1 / threshold).toInt
+    val sn: Int = (1 / threshold).toInt + 1
     val similarity = mutable.Map[Double, Int]()
-
-    //    val Array_threshold: Array[Double] = new Array[Double](sn + 1)
-    //    val Array_nbperson: Array[Double] = new Array[Double](sn + 1)
     var tmp: Double = 0.0
     for (i <- 0 until sn) {
-      if (tmp == 0.0) {
-        similarity.put(tmp, (proba.length / ratio).toInt)
-      } else {
         var nbperson: Int = 0
-        for (j <- proba) {
-          if (j >= tmp) {
+      proba.foreach { each =>
+        if (each >= tmp)
             nbperson = nbperson + 1
-          }
-        }
-        similarity.put(tmp, (nbperson /ratio).toInt)
       }
+      similarity.put(tmp, (nbperson / ratio).toInt)
       tmp = threshold + tmp
     }
     similarity

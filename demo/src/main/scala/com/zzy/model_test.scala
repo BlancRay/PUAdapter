@@ -11,7 +11,7 @@ protected object model_test{
     *
     * @param model RandomForestModel 模型
     * @param estC  Double c
-    * @return (gid,proba) (Array[String],Array[Double])
+    * @return RDD[Double] 预测概率
     */
   def evaluate(model: RandomForestModel, estC: Double, modelid: String, sc: SparkContext,nbTagFeatures:Int): RDD[Double] = {
     tool.log(modelid, "生成模型测试数据", "1", prop.getProperty("log"))

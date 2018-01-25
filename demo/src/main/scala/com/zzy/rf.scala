@@ -1,6 +1,6 @@
 package com.zzy
 
-import java.io.{BufferedInputStream, File, FileInputStream, Reader}
+import java.io.{BufferedInputStream, FileInputStream}
 import java.util
 import java.util.Properties
 
