@@ -8,9 +8,10 @@ protected object similiarity {
     *
     * @param proba     Array[Double] 个体的相似度
     * @param threshold Double 相似度变化率
-    * @return (Array_threshold,Array_nbperson) (Array[Double],Array[Double]) (相似度,个体数量占比)
+    * @param ratio     Double 测试人群在数据库中占比
+    * @return similarity mutable.Map[Double, Int]() (相似度,个体数量)
     */
-  def statistics(proba: Array[Double], threshold: Double,ratio:Double) = {
+  def statistics(proba: Array[Double], threshold: Double, ratio: Double): mutable.Map[Double, Int] = {
     val sn: Int = (1 / threshold).toInt
     val similarity = mutable.Map[Double, Int]()
 
@@ -19,7 +20,7 @@ protected object similiarity {
     var tmp: Double = 0.0
     for (i <- 0 until sn) {
       if (tmp == 0.0) {
-        similarity.put(tmp, 1)
+        similarity.put(tmp, (proba.length / ratio).toInt)
       } else {
         var nbperson: Int = 0
         for (j <- proba) {

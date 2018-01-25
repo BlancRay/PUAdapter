@@ -17,7 +17,7 @@ protected object similiarity {
     var tmp: Double = 0.0
     for (i <- 0 until sn) {
       if (tmp == 0.0) {
-        similarity.put(tmp, 1)
+        similarity.put(tmp, (proba.length / ratio).toInt)
       } else {
         var nbperson: Int = 0
         for (j <- proba) {
