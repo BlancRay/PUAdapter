@@ -57,15 +57,15 @@ object main {
     write2file(sb, "E:\\xulei\\zhiziyun\\model\\test\\proba.csv")
 
     //    tool.log(modelid, "生成相似度与个体数量关系", "1", prop.getProperty("log"))
-    val similarity = similiarity.statistics(proba, 0.001, 0.1).toMap
+    val similar = similarity.statistics(proba, 0.001, 0.1).toMap
     //
     //    //callBackSimilar
     sb = new StringBuffer()
     sb.append("similar,num\n")
-    similarity.keys.foreach { i =>
+    similar.keys.foreach { i =>
       sb.append(i.toString)
         .append(",")
-        .append(similarity(i).toString)
+        .append(similar(i).toString)
         .append("\n")
     }
     write2file(sb, "E:\\xulei\\zhiziyun\\model\\test\\similarity.csv")

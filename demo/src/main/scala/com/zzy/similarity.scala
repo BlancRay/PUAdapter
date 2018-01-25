@@ -1,6 +1,8 @@
+package com.zzy
+
 import scala.collection.mutable
 
-protected object similiarity {
+protected object similarity {
   /**
     * 统计不同相似度下人群数量占比
     *
@@ -14,10 +16,10 @@ protected object similiarity {
     val similarity = mutable.Map[Double, Int]()
     var tmp: Double = 0.0
     for (i <- 0 until sn) {
-      var nbperson: Int = 0
+        var nbperson: Int = 0
       proba.foreach { each =>
         if (each >= tmp)
-          nbperson = nbperson + 1
+            nbperson = nbperson + 1
       }
       similarity.put(tmp, (nbperson / ratio).toInt)
       tmp = threshold + tmp

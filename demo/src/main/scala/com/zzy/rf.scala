@@ -97,7 +97,7 @@ object rf {
       val proba =
         model_test.evaluate(model, estC, modelid, sc, TagArray.size()).collect()
       tool.log(modelid, "生成相似度与个体数量关系", "1", prop.getProperty("log"))
-      val similarity = similiarity
+      val similar = similarity
         .statistics(proba,
                     JSONObject.fromObject(model_args).getDouble("delta"),
                     JSONObject.fromObject(modelinfo).getDouble("sigma"))
@@ -106,10 +106,10 @@ object rf {
       //callBackSimilar
       // todo 数据量较大，需要分批写入
       val similarity_mapArray = new JSONArray()
-      similarity.keys.foreach { i =>
+      similar.keys.foreach { i =>
         val json_obj = new JSONObject()
         json_obj.put("similar", i.toString)
-        json_obj.put("num", similarity(i).toString)
+        json_obj.put("num", similar(i).toString)
         similarity_mapArray.add(json_obj)
       }
       LOG.info("相似度计算完成，写入数据库中")
