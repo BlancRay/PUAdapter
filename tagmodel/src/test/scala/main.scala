@@ -1,7 +1,5 @@
-import java.io.FileReader
+import java.io.{FileOutputStream, PrintWriter}
 
-import com.zzy.tagModel.{LOG, prop}
-import net.sf.json.{JSONArray, JSONObject}
 import org.apache.spark.mllib.linalg.{Vector, Vectors}
 import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.mllib.tree.RandomForest
@@ -23,10 +21,10 @@ object main {
     val p = readData(sc, sc.textFile("E:\\xulei\\zhiziyun\\model\\test\\train_P_label").collect(), "P")
     val u = readData(sc, sc.textFile("E:\\xulei\\zhiziyun\\model\\test\\train_U").collect(), "U")
 
-    val categoryInfos = Source.fromFile("E:\\xulei\\workspace\\ZZY\\attrinfo.txt").getLines.next().replace("{", "").replace("}", "").replace(" ", "").split(",")
+    val categoryInfos = Source.fromFile("E:\\xulei\\zhiziyun\\model\\test\\attrInfo.txt").getLines
     val categoryInfo = mutable.Map[Int, Int]()
     categoryInfos.foreach { each =>
-      val tmp = each.split("=")
+      val tmp = each.split("\t")
       categoryInfo.put(tmp(0).toInt, tmp(1).toInt)
     }
 
@@ -36,41 +34,47 @@ object main {
     //
     //    LOG.info("模型训练完成，正在保存模型")
     //
+    var sb = new StringBuffer()
     //    LOG.info("开始计算模型影响因子")
     val feature_importance = importance.importance(model.trees, 2000)
-    //
-    //    //setInfluenceFacByModelId
-    val importance_mapArray = new JSONArray()
+    sb.append("tagIndex").append(",").append("instensity").append("\n")
     feature_importance.keys.foreach { i =>
-      val json_obj = new JSONObject()
-      json_obj.put("tagIndex", i.toString)
-      json_obj.put("instensity", feature_importance(i).toString)
-      importance_mapArray.add(json_obj)
+      sb.append(i.toString)
+        .append(",")
+        .append(feature_importance(i).toString)
+        .append("\n")
     }
-    //
-    println(importance_mapArray.toString)
+    write2file(sb, "E:\\xulei\\zhiziyun\\model\\test\\importance.csv")
     //    LOG.info("写入模型影响因子")
     //    tool.postArrayToURL(modelid, prop.getProperty("influence"), importance_mapArray)
     //
     //    LOG.info("开始计算相似度")
     val proba = model_test.evaluate(model, estC, modelid, sc, 2000).collect()
+    sb = new StringBuffer()
+    for (i <- proba.indices) {
+      sb.append(i).append(",").append(proba).append("\n")
+    }
+    write2file(sb, "E:\\xulei\\zhiziyun\\model\\test\\proba.csv")
+
     //    tool.log(modelid, "生成相似度与个体数量关系", "1", prop.getProperty("log"))
     val similarity = similiarity.statistics(proba, 0.001, 0.1).toMap
     //
     //    //callBackSimilar
-    //    // todo 数据量较大，需要分批写入
-    val similarity_mapArray = new JSONArray()
+    sb = new StringBuffer()
+    sb.append("similar,num\n")
     similarity.keys.foreach { i =>
-      val json_obj = new JSONObject()
-      json_obj.put("similar", i.toString)
-      json_obj.put("num", similarity(i).toString)
-      similarity_mapArray.add(json_obj)
+      sb.append(i.toString)
+        .append(",")
+        .append(similarity(i).toString)
+        .append("\n")
     }
-    println(similarity_mapArray.toString)
+    write2file(sb, "E:\\xulei\\zhiziyun\\model\\test\\similarity.csv")
+    sb = null
   }
 
+
   //
-  def readData(sc: SparkContext, data: Array[String], dtype: String) = {
+  def readData(sc: SparkContext, data: Array[String], dtype: String): RDD[LabeledPoint] = {
     val lp = new Array[LabeledPoint](data.length)
     var i = 0
     data.foreach { eachdata =>
@@ -90,7 +94,7 @@ object main {
   }
 
 
-  def fit(POS: RDD[LabeledPoint], UNL: RDD[LabeledPoint], categoryInfo: Map[Int, Int]) = {
+  def fit(POS: RDD[LabeledPoint], UNL: RDD[LabeledPoint], categoryInfo: Map[Int, Int]): (Double, RandomForestModel) = {
     val hold_out_ratio = 0.2
     var c = Double.NaN
     var model_hold_out: RandomForestModel = null
@@ -106,5 +110,11 @@ object main {
       println("C is Nan")
     }
     (c, model_hold_out)
+  }
+
+  def write2file(string: StringBuffer, dir: String): Unit = {
+    val writer = new PrintWriter(new FileOutputStream(dir))
+    writer.print(string)
+    writer.close()
   }
 }

@@ -1,4 +1,3 @@
-import com.zzy.tagModel.LOG
 import org.apache.spark.mllib.tree.model.{DecisionTreeModel, Node}
 
 import scala.collection.mutable
@@ -8,10 +7,10 @@ object importance {
     * 计算特征重要性
     *
     * @param trees Array[DecisionTreeModel] 随机森林子树
-    * @return List[(Int, Double)] 特征重要性[(特征序号，重要性)]
+    * @return Map[(Int, Double)] 特征重要性[(特征序号，重要性)]
     */
   def importance(trees: Array[DecisionTreeModel], nbTagFeatures: Int): Map[Int, Double] = {
-    val f_i = new scala.collection.mutable.HashMap[Int, Double]()
+    val f_i = new mutable.HashMap[Int, Double]()
     val feature_importance = mutable.Map[Int, Double]()
     for (i <- 1 to nbTagFeatures) {
       feature_importance.put(i, 0.0)
@@ -64,8 +63,8 @@ object importance {
     * @param percent Double 数据到达该节点的概率
     * @return mutable.HashMap[Int, Double] 特征重要性[特征序号，重要性]
     */
-  private def scan(node: Node, percent: Double): scala.collection.mutable.HashMap[Int, Double] = {
-    val impurity = new scala.collection.mutable.HashMap[Int, Double]()
+  private def scan(node: Node, percent: Double): mutable.HashMap[Int, Double] = {
+    val impurity = new mutable.HashMap[Int, Double]()
     val delta_i = if ((percent * node.stats.get.gain) > 1E-6) percent * node.stats.get.gain else 0.0 //if gain is too small,delta will be 0.0
     if (delta_i.isInfinite || delta_i.isNaN || delta_i == 0.0) //debug
       println("delta_i is " + delta_i + "\tpercent=" + percent + "\tgain=" + node.stats.get.gain)

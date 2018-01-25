@@ -3,7 +3,6 @@ import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.mllib.tree.RandomForest
 import org.apache.spark.mllib.tree.model.RandomForestModel
 import org.apache.spark.rdd.RDD
-import com.zzy.tagModel.{LOG, prop}
 
 import scala.util.parsing.json.JSON
 
@@ -14,9 +13,9 @@ protected object fit {
     * @param modelid String
     * @param POS     RDD[LabeledPoint]
     * @param UNL     RDD[LabeledPoint]
-    * @return org.apache.spark.mllib.tree.model.RandomForestModel
+    * @return (Double,org.apache.spark.mllib.tree.model.RandomForestModel) tmpParam and Model
     */
-  def fit(modelid: String, POS: RDD[LabeledPoint], UNL: RDD[LabeledPoint], algo_args: String) = {
+  def fit(modelid: String, POS: RDD[LabeledPoint], UNL: RDD[LabeledPoint], algo_args: String): (Double, RandomForestModel) = {
     var c = Double.NaN
     var model_hold_out: RandomForestModel = null
     do {

@@ -18,6 +18,8 @@ import org.apache.spark.mllib.tree.model.RandomForestModel
 import org.apache.spark.rdd.RDD
 import org.jsoup.Jsoup
 
+import scala.collection.mutable
+
 object tool {
   def predict(points: RDD[LabeledPoint], model: RandomForestModel): RDD[Double] = {
     val numTrees = model.trees.length
@@ -68,7 +70,7 @@ object tool {
     val factors = Array.range(0, nbTagFeatures)
     res.foreach { case (rowkey, hbaseresult) =>
       gid(i) = rowkey
-      val GID_TAG_split = new scala.collection.mutable.HashMap[Int, Double]()
+      val GID_TAG_split = new mutable.HashMap[Int, Double]()
       if (hbaseresult != "") {
         val GID_TAG_SET = hbaseresult.split(";")
         var is_time = true
