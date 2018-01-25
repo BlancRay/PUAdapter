@@ -1,5 +1,6 @@
 package com.zzy
 
+import com.zzy.tagModel.{LOG, prop}
 import net.sf.json.JSONObject
 import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.mllib.tree.RandomForest
@@ -7,7 +8,6 @@ import org.apache.spark.mllib.tree.model.RandomForestModel
 import org.apache.spark.rdd.RDD
 
 import scala.util.parsing.json.JSON
-import tagModel.{LOG, prop}
 
 protected object fit {
   /**
