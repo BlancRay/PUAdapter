@@ -52,12 +52,12 @@ object main {
     val proba = model_test.evaluate(model, estC, modelid, sc, 2000).collect()
     sb = new StringBuffer()
     for (i <- proba.indices) {
-      sb.append(i).append(",").append(proba).append("\n")
+      sb.append(i).append(",").append(proba(i)).append("\n")
     }
     write2file(sb, "E:\\xulei\\zhiziyun\\model\\test\\proba.csv")
 
     //    tool.log(modelid, "生成相似度与个体数量关系", "1", prop.getProperty("log"))
-    val similar = similarity.statistics(proba, 0.001, 0.1).toMap
+    val similar = similarity.statistics(proba, 0.001, 1).toMap
     //
     //    //callBackSimilar
     sb = new StringBuffer()
