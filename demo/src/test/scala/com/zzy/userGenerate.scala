@@ -2,7 +2,6 @@ package com.zzy
 
 import java.io.{File, PrintWriter}
 import java.text.SimpleDateFormat
-import java.util
 import java.util.{Properties, Random}
 
 import org.apache.commons.math3.random.RandomDataGenerator

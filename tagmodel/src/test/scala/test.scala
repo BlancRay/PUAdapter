@@ -1,7 +1,7 @@
 import java.util
 
 import net.sf.json.JSONObject
-import org.jsoup.{HttpStatusException, Jsoup}
+import org.jsoup.Jsoup
 
 object test {
   def main(args: Array[String]): Unit = {
