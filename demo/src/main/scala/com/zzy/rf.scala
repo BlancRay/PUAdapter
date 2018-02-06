@@ -75,9 +75,8 @@ object rf {
       tool.log(modelid, "模型保存完成，开始计算模型影响因子", "1", prop.getProperty("log"))
 
       LOG.info("开始计算模型影响因子")
-      val feature_importance =
-        importance.importance(model.trees, TagArray.size())
-
+      //      val feature_importance = importance.importance(model.trees, TagArray.size())
+      val feature_importance = importance.featureImportances(model.trees, TagArray.size())
       //setInfluenceFacByModelId
       val importance_mapArray = new JSONArray()
       feature_importance.keys.foreach { i =>
