@@ -1,9 +1,16 @@
 import java.io.File
 
+import scala.util.Random
+
 object codeTest {
   def main(args: Array[String]): Unit = {
-    val modelFile = new File("E:\\xulei\\zhiziyun\\model\\test\\model")
-    dirDel(modelFile)
+    val random = Random.nextDouble()
+    if (random > 0.5) {
+      println(random)
+      throw new Exception(random + ">0.5")
+    } else
+      println(random)
+    println("222222")
   }
 
   def dirDel(path: File) {
