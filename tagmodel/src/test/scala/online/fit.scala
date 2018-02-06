@@ -16,7 +16,7 @@ protected object fit {
     * @param UNL     RDD[LabeledPoint]
     * @return org.apache.spark.mllib.tree.model.RandomForestModel
     */
-  def fit(modelid: String, POS: RDD[LabeledPoint], UNL: RDD[LabeledPoint], algo_args: String, categoryInfo: Map[Int, Int]) = {
+  def fit(modelid: String, POS: RDD[LabeledPoint], UNL: RDD[LabeledPoint], algo_args: String, categoryInfo: Map[Int, Int]): (Double, RandomForestModel) = {
     var c = Double.NaN
     var model_hold_out: RandomForestModel = null
     do {

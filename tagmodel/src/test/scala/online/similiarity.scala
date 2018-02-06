@@ -10,7 +10,7 @@ protected object similiarity {
     * @param threshold Double 相似度变化率
     * @return (Array_threshold,Array_nbperson) (Array[Double],Array[Double]) (相似度,个体数量占比)
     */
-  def statistics(proba: Array[Double], threshold: Double, ratio: Double) = {
+  def statistics(proba: Array[Double], threshold: Double, ratio: Double): mutable.Map[Double, Int] = {
     val sn: Int = (1 / threshold).toInt
     val similarity = mutable.Map[Double, Int]()
 
