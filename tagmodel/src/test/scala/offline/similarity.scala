@@ -1,3 +1,5 @@
+package offline
+
 import scala.collection.mutable
 
 protected object similarity {

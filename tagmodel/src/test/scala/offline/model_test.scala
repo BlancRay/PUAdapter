@@ -1,4 +1,6 @@
-import main.readData
+package offline
+
+import offline.main.readData
 import org.apache.spark.SparkContext
 import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.mllib.tree.model.RandomForestModel
@@ -12,10 +14,10 @@ protected object model_test {
     * @param estC  Double c
     * @return RDD[Double] 预测概率
     */
-  def evaluate(model: RandomForestModel, estC: Double, sc: SparkContext, nbTagFeatures: Int): RDD[Double] = {
+  def evaluate(model: RandomForestModel, estC: Double, sc: SparkContext, nbTagFeatures: Int, dir: String): RDD[Double] = {
     //    tool.log(modelid, "生成模型测试数据", "1", prop.getProperty("log"))
     //    val (_, test_data) = tool.read_convert(modelid, "N_SOURCE", sc, nbTagFeatures)
-    val test_data = readData(sc, sc.textFile("E:\\xulei\\zhiziyun\\model\\test\\train_P_label").collect(), "N")
+    val test_data = readData(sc, sc.textFile(dir).collect(), "N")
     println("N_SOURCE数量:" + test_data.count().toString)
     //    tool.log(modelid, "模型测试中", "1", prop.getProperty("log"))
     val prediction = predict(test_data, model)

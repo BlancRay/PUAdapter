@@ -1,4 +1,6 @@
-import java.io.{FileOutputStream, PrintWriter}
+package offline
+
+import java.io.{File, FileOutputStream, PrintWriter}
 
 import org.apache.spark.mllib.linalg.{Vector, Vectors}
 import org.apache.spark.mllib.regression.LabeledPoint
@@ -10,72 +12,53 @@ import org.apache.spark.{SparkConf, SparkContext}
 import scala.collection.mutable
 import scala.io.Source
 
-object main {
-
+object unit_train {
+  val pwd = "E:\\xulei\\zhiziyun\\model\\test\\test7\\"
   def main(args: Array[String]): Unit = {
     println("调用算法训练模型")
     //设置hadoop目录
     System.setProperty("hadoop.home.dir", "E:\\xulei\\hadoop2.6.0")
     val sc = new SparkContext(new SparkConf().setAppName("RandomForestClassificationTrain").setMaster("local[4]"))
-    val p = readData(sc, sc.textFile("E:\\xulei\\zhiziyun\\model\\test\\train_P_label").collect(), "P")
-    val u = readData(sc, sc.textFile("E:\\xulei\\zhiziyun\\model\\test\\train_U").collect(), "U")
+    val p = readData(sc, sc.textFile(pwd + "train_P_label").collect(), "P")
+    val u = readData(sc, sc.textFile(pwd + "train_U").collect(), "U")
 
-    val categoryInfos = Source.fromFile("E:\\xulei\\zhiziyun\\model\\test\\attrInfo.txt").getLines
+    val categoryInfos = Source.fromFile(pwd + "attrInfo.txt").getLines
     val categoryInfo = mutable.Map[Int, Int]()
     categoryInfos.foreach { each =>
       val tmp = each.split("\t")
       categoryInfo.put(tmp(0).toInt, tmp(1).toInt)
     }
 
-
     //    //train model use p and u,return arg c and model
     val (estC, model) = fit(p, u, categoryInfo.toMap)
     //
     //    LOG.info("模型训练完成，正在保存模型")
-    //    model.save(sc,"E:\\xulei\\zhiziyun\\model\\test\\model")
+    val saveC = new PrintWriter(new FileOutputStream(pwd + "estC"))
+    saveC.write(estC.toString)
+    saveC.close()
+    val modelFile = new File(pwd + "model")
+    dirDel(modelFile)
+    model.save(sc, pwd + "model")
 
-    //
-    var sb = new StringBuffer()
-    //    LOG.info("开始计算模型影响因子")
-    val feature_importance = importance.importance(model.trees, 2000)
-    sb.append("tagIndex").append(",").append("instensity").append("\n")
-    feature_importance.keys.foreach { i =>
-      sb.append(i.toString)
-        .append(",")
-        .append(feature_importance(i).toString)
-        .append("\n")
-    }
-    write2file(sb, "E:\\xulei\\zhiziyun\\model\\test\\importance.csv")
-    //    LOG.info("写入模型影响因子")
-    //    tool.postArrayToURL(modelid, prop.getProperty("influence"), importance_mapArray)
-    //
-    //    LOG.info("开始计算相似度")
-    val proba = model_test.evaluate(model, estC, sc, 2000).collect()
-    sb = new StringBuffer()
-    sb.append("gid,prob\n")
-    for (i <- proba.indices) {
-      sb.append(i).append(",").append(proba(i)).append("\n")
-    }
-    write2file(sb, "E:\\xulei\\zhiziyun\\model\\test\\proba.csv")
-
-    //    tool.log(modelid, "生成相似度与个体数量关系", "1", prop.getProperty("log"))
-    val similar = similarity.statistics(proba, 0.001, 1).toMap
-    //
-    //    //callBackSimilar
-    sb = new StringBuffer()
-    sb.append("similar,num\n")
-    similar.keys.foreach { i =>
-      sb.append(i.toString)
-        .append(",")
-        .append(similar(i).toString)
-        .append("\n")
-    }
-    write2file(sb, "E:\\xulei\\zhiziyun\\model\\test\\similarity.csv")
-    sb = null
   }
 
+  def dirDel(path: File) {
+    if (!path.exists())
+      return
+    else if (path.isFile) {
+      path.delete()
+      println(path + ":  文件被删除")
+      return
+    }
+    val file: Array[File] = path.listFiles()
+    for (d <- file) {
+      dirDel(d)
+    }
+    path.delete()
+    println(path + ":  目录被删除")
 
-  //
+  }
+
   def readData(sc: SparkContext, data: Array[String], dtype: String): RDD[LabeledPoint] = {
     val lp = new Array[LabeledPoint](data.length)
     var i = 0
@@ -112,11 +95,5 @@ object main {
       println("C is Nan")
     }
     (c, model_hold_out)
-  }
-
-  def write2file(string: StringBuffer, dir: String): Unit = {
-    val writer = new PrintWriter(new FileOutputStream(dir))
-    writer.print(string)
-    writer.close()
   }
 }

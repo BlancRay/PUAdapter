@@ -1,8 +1,47 @@
+package offline
+
 import org.apache.spark.mllib.tree.model.{DecisionTreeModel, Node}
 
 import scala.collection.mutable
 
 object importance {
+
+  def featureImportances(trees: Array[DecisionTreeModel], nbTagFeatures: Int): Map[Int, Double] = {
+    val f_i = new mutable.HashMap[Int, Double]()
+    val feature_importance = mutable.Map[Int, Double]()
+    for (i <- 1 to nbTagFeatures) {
+      feature_importance.put(i, 0.0)
+    }
+    for (tree <- trees) {
+      if (!tree.topNode.isLeaf) {
+        //        println("#########################")
+        //        println(tree.topNode.id,tree.topNode.split.get.feature)
+        val f_i_tree = scan(tree.topNode, 1.0)
+        //normalize each tree
+        val treeNorm = f_i_tree.values.sum
+        if (treeNorm != 0) {
+          f_i_tree.foreach { case (idx, impt) =>
+            val normImpt = impt / treeNorm
+            if (f_i.contains(idx)) {
+              println("it already had")
+              f_i.update(idx, f_i(idx) + normImpt)
+            }
+            else f_i.update(idx, normImpt)
+          }
+        }
+      }
+    }
+
+    val f_i_sum = f_i.values.sum
+
+    f_i.foreach { e =>
+      if (f_i_sum == 0.0 || e._2.isInfinity)
+        println("f_i_sum is 0, will be Nan " + f_i_sum + "," + e._2)
+      feature_importance.update(e._1 + 1, e._2 / f_i_sum)
+    }
+    feature_importance.toMap
+  }
+
   /**
     * 计算特征重要性
     *
@@ -22,6 +61,7 @@ object importance {
         val f_i_tree = scan(tree.topNode, 1.0)
         f_i_tree.foreach { e =>
           if (f_i.contains(e._1)) {
+            println("it already had")
             val curImpurity: Double = f_i(e._1) + e._2
             f_i.put(e._1, curImpurity)
           }
@@ -29,6 +69,8 @@ object importance {
             f_i.put(e._1, e._2)
         }
       }
+      //normalize each tree
+
     }
     f_i.foreach { i =>
       if (i._2.isNaN || i._2.isInfinity) //debug
@@ -36,14 +78,7 @@ object importance {
       f_i.put(i._1, i._2 / trees.length)
     }
 
-    var f_i_sum: Double = 0.0
-    f_i.foreach { each =>
-      //      println(f_i_sum.isNaN)
-      if (each._2.isNaN || each._2.isInfinity) //debug
-        println("error: " + each._2)
-      f_i_sum = f_i_sum + each._2
-    }
-
+    val f_i_sum = f_i.values.sum
     //    println("f_i_sum is Nan? " + f_i_sum)
 
     f_i.foreach { e =>
@@ -66,12 +101,17 @@ object importance {
   private def scan(node: Node, percent: Double): mutable.HashMap[Int, Double] = {
     val impurity = new mutable.HashMap[Int, Double]()
     val delta_i = if ((percent * node.stats.get.gain) > 1E-6) percent * node.stats.get.gain else 0.0 //if gain is too small,delta will be 0.0
-    if (delta_i.isInfinite || delta_i.isNaN || delta_i == 0.0) //debug
-      println("delta_i is " + delta_i + "\tpercent=" + percent + "\tgain=" + node.stats.get.gain)
     val feature_name = node.split.get.feature
-    impurity.put(feature_name, delta_i)
+    if (impurity.contains(feature_name)) {
+      println("scan: it already had")
+      impurity.update(feature_name, impurity(feature_name) + delta_i)
+    }
+    else
+      impurity.put(feature_name, delta_i)
     val left = node.leftNode.get
     val right = node.rightNode.get
+    if (delta_i.isInfinite || delta_i.isNaN || delta_i == 0.0) //debug
+      println(feature_name + " delta_i is " + delta_i + ",\tpercent=" + percent + ",\tgain=" + node.stats.get.gain + ",\tLeftNode is Leaf:" + left.isLeaf + ",\tRightNode is Leaf:" + right.isLeaf)
 
     if (!left.isLeaf) {
       var p1 = (node.impurity - node.stats.get.gain - right.impurity) / (left.impurity - right.impurity)
