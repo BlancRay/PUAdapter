@@ -40,21 +40,20 @@ object tagModel {
       val algo_args = JSONObject.fromObject(modelinfo).get("algorithm_args").toString
       val model_args = JSONObject.fromObject(modelinfo).get("model_args").toString
 
-      val TagIndexInfo = tool.postDataToURL(prop.getProperty("tagindex"), modelIdMap)
-      val TagArray = JSONArray.fromObject(JSONObject.fromObject(TagIndexInfo).get("result"))
+      val categoryInfo = tool.getCategoryInfo(modelid)
       //read p u data
       tool.log(modelid, "读取种子人群", "1", prop.getProperty("log"))
 
-      val (_, p) = tool.read_convert(modelid, "P_SOURCE", sc, TagArray.size())
+      val (_, p) = tool.read_convert(modelid, "P_SOURCE", sc, categoryInfo)
       LOG.info("P_SOURCE数量:" + p.count().toString)
 
       tool.log(modelid, "读取训练数据", "1", prop.getProperty("log"))
-      val (_, u) = tool.read_convert(modelid, "U_SOURCE", sc, TagArray.size())
+      val (_, u) = tool.read_convert(modelid, "U_SOURCE", sc, categoryInfo)
       LOG.info("U_SOURCE数量:" + u.count().toString)
       LOG.info("数据读取完成")
 
       //train model use p and u,return arg c and model
-      val (estC, model) = fit.fit(modelid, p, u, algo_args)
+      val (estC, model) = fit.fit(modelid, p, u, algo_args, categoryInfo.toMap)
 
       LOG.info("模型训练完成，正在保存模型")
       tool.save(model, estC, modelinfo, modelid, sc)
@@ -62,7 +61,8 @@ object tagModel {
       tool.log(modelid, "模型保存完成，开始计算模型影响因子", "1", prop.getProperty("log"))
 
       LOG.info("开始计算模型影响因子")
-      val feature_importance = importance.importance(model.trees, TagArray.size())
+      //      val feature_importance = importance.importance(model.trees, TagArray.size())
+      val feature_importance = importance.featureImportances(model.trees, categoryInfo.size)
 
       //setInfluenceFacByModelId
       val importance_mapArray = new JSONArray()
@@ -78,7 +78,7 @@ object tagModel {
       tool.postArrayToURL(modelid, prop.getProperty("influence"), importance_mapArray)
 
       LOG.info("开始计算相似度")
-      val proba = model_test.evaluate(model, estC, modelid, sc, TagArray.size()).collect()
+      val proba = model_test.evaluate(model, estC, modelid, sc, categoryInfo).collect()
       tool.log(modelid, "生成相似度与个体数量关系", "1", prop.getProperty("log"))
       val similarity = similiarity.statistics(proba, JSONObject.fromObject(model_args).getDouble("delta"), JSONObject.fromObject(modelinfo).getDouble("sigma")).toMap
 

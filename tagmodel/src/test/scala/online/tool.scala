@@ -31,13 +31,17 @@ object tool {
     }
   }
 
-  def getCategoryInfo(modelid: String): mutable.Map[Int, Int] = {
-    val categoryInfo = mutable.Map[Int, Int]()
-    val categoryInfoJson = JSONArray.fromObject(JSONObject.fromObject(tool.postDataToURL(prop.getProperty("category_info"), modelIdMap)).get("result"))
-    for (i <- 0 until categoryInfoJson.size()) {
-      categoryInfo.put(i, categoryInfoJson.getInt(i))
+  def getAttributeInfo(modelid: String): (mutable.Map[Int, Int], mutable.Map[Int, Int]) = {
+    val featureInfoJson = JSONObject.fromObject(JSONObject.fromObject(tool.postDataToURL(prop.getProperty("category_info"), modelIdMap)).get("result"))
+    val nominalInfo = mutable.Map[Int, Int]()
+    val attributeInfo = mutable.Map[Int, Int]()
+    for (i <- 0 until featureInfoJson.size()) {
+      val a = featureInfoJson.getInt(i.toString)
+      attributeInfo.put(i, a)
+      if (a != 1)
+        nominalInfo.put(i, a)
     }
-    categoryInfo
+    (attributeInfo, nominalInfo)
   }
 
   /**
@@ -71,7 +75,7 @@ object tool {
     val res = data_source.map { case (_, each) =>
       //从SOURCE表中读取的某个GID的ROWKEY
       //从SOURCE表中读取的某个GID的column标签集合
-      (Bytes.toString(each.getRow), Bytes.toString(each.getValue("info".getBytes, "feature".getBytes)))
+      (Bytes.toString(each.getRow), Bytes.toString(each.getValue("info".getBytes, "trait".getBytes)))
     }.take(count.toInt)
     val gid = new Array[String](count.toInt)
     val lp = new Array[LabeledPoint](count.toInt)

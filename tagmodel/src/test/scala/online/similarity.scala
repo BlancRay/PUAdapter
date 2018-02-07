@@ -1,8 +1,8 @@
-package com.zzy
+package online
 
 import scala.collection.mutable
 
-protected object similiarity {
+protected object similarity {
   /**
     * 统计不同相似度下人群数量占比
     *

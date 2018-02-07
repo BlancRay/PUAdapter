@@ -20,6 +20,8 @@ import org.apache.spark.mllib.tree.model.RandomForestModel
 import org.apache.spark.rdd.RDD
 import org.jsoup.Jsoup
 
+import scala.collection.mutable
+
 object tool {
   def predict(points: RDD[LabeledPoint], model: RandomForestModel): RDD[Double] = {
     val numTrees = model.trees.length
@@ -29,13 +31,22 @@ object tool {
     }
   }
 
+  def getCategoryInfo(modelid: String): mutable.Map[Int, Int] = {
+    val categoryInfo = mutable.Map[Int, Int]()
+    val categoryInfoJson = JSONArray.fromObject(JSONObject.fromObject(tool.postDataToURL(prop.getProperty("category_info"), modelIdMap)).get("result"))
+    for (i <- 0 until categoryInfoJson.size()) {
+      categoryInfo.put(i, categoryInfoJson.getInt(i))
+    }
+    categoryInfo
+  }
+
   /**
     *
     * @param Type String 数据来源，P/U/N
     * @param sc   SparkContext
     * @return (RDD[String],RDD[LabeledPoint]) (GID,数据)
     */
-  def read_convert(modelid: String, Type: String, sc: SparkContext, nbTagFeatures: Int): (RDD[String], RDD[LabeledPoint]) = {
+  def read_convert(modelid: String, Type: String, sc: SparkContext, Features: mutable.Map[Int, Int]): (RDD[String], RDD[LabeledPoint]) = {
     val HBconf = HBaseConfiguration.create()
     HBconf.set("hbase.zookeeper.property.clientPort", prop.getProperty("hbase_clientPort"))
     HBconf.set("hbase.zookeeper.quorum", prop.getProperty("hbase_quorum")) //"kylin-node4,kylin-node3,kylin-node2"
@@ -66,23 +77,24 @@ object tool {
     val lp = new Array[LabeledPoint](count.toInt)
     var i = 0
 
-    LOG.info("所有标签特征数量:" + nbTagFeatures.toString)
-    val factors = Array.range(0, nbTagFeatures)
-    res.foreach { case (rowkey, hbaseresult) =>
+    LOG.info("特征数量:" + Features.size.toString)
+    val factors = Array.range(0, Features.size)
+    res.foreach {
+      case (rowkey, hbaseresult) =>
       gid(i) = rowkey
-      val GID_TAG_split = new scala.collection.mutable.HashMap[Int, Double]()
+        val GID_TAG_split = new mutable.HashMap[Int, Double]()
       if (hbaseresult != "") {
         val GID_TAG_SET = hbaseresult.split(";")
-        var is_time = true
         GID_TAG_SET.foreach { each =>
           val tag_split = each.split(":")
-          if (is_time) {
-            GID_TAG_split.put(tag_split(0).toInt, tag_split(1).toDouble / 3600000)
-            is_time = false
-          } else
-            GID_TAG_split.put(tag_split(0).toInt, tag_split(1).toDouble)
+          GID_TAG_split.put(tag_split(0).toInt, tag_split(1).toDouble)
         }
+      } else {
+        LOG.error(rowkey + " 的特征数为0!")
+        log(modelid, rowkey + " 的特征数为0!", "-1", prop.getProperty("log"))
+        throw new Exception(rowkey + " 的特征数为0!")
       }
+
       //      println(rowkey,hbaseresult)
       //从MODEL_TAG_INDEX表中读取modelID的所有标签 getTagIndexInfoByModelId
 
@@ -92,7 +104,10 @@ object tool {
         if (GID_TAG_split.contains(each + 1)) {
           feature(each) = GID_TAG_split(each + 1)
         } else {
-          feature(each) = 0
+          if (Features(each) == 1) //连续变量长度为1
+            feature(each) = -1.0
+          else //离散变量长度至少为2(包含一个"NULL")
+            feature(each) = 0.0
         }
       }
 

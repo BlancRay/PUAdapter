@@ -6,6 +6,8 @@ import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.mllib.tree.model.RandomForestModel
 import org.apache.spark.rdd.RDD
 
+import scala.collection.mutable
+
 protected object model_test {
   /**
     * 根据参数获取模型参数，读取测试数据、模型及参数c、输出预测概率
@@ -14,9 +16,9 @@ protected object model_test {
     * @param estC  Double c
     * @return (gid,proba) (Array[String],Array[Double])
     */
-  def evaluate(model: RandomForestModel, estC: Double, modelid: String, sc: SparkContext, nbTagFeatures: Int): RDD[Double] = {
+  def evaluate(model: RandomForestModel, estC: Double, modelid: String, sc: SparkContext, Features: mutable.Map[Int, Int]): RDD[Double] = {
     tool.log(modelid, "生成模型测试数据", "1", prop.getProperty("log"))
-    val (_, test_data) = tool.read_convert(modelid, "N_SOURCE", sc, nbTagFeatures)
+    val (_, test_data) = tool.read_convert(modelid, "N_SOURCE", sc, Features)
     LOG.info("N_SOURCE数量:" + test_data.count().toString)
     tool.log(modelid, "模型测试中", "1", prop.getProperty("log"))
     val prediction = predict(test_data, model)

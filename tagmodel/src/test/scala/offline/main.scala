@@ -77,7 +77,6 @@ object main {
   }
 
 
-  //
   def readData(sc: SparkContext, data: Array[String], dtype: String): RDD[LabeledPoint] = {
     val lp = new Array[LabeledPoint](data.length)
     var i = 0

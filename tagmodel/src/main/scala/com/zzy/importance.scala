@@ -6,13 +6,49 @@ import org.apache.spark.mllib.tree.model.{DecisionTreeModel, Node}
 import scala.collection.mutable
 
 protected object importance {
+  def featureImportances(trees: Array[DecisionTreeModel], nbTagFeatures: Int): Map[Int, Double] = {
+    val f_i = new mutable.HashMap[Int, Double]()
+    val feature_importance = mutable.Map[Int, Double]()
+    for (i <- 1 to nbTagFeatures) {
+      feature_importance.put(i, 0.0)
+    }
+    for (tree <- trees) {
+      if (!tree.topNode.isLeaf) {
+        //        println("#########################")
+        //        println(tree.topNode.id,tree.topNode.split.get.feature)
+        val f_i_tree = scan(tree.topNode, 1.0)
+        //normalize each tree
+        val treeNorm = f_i_tree.values.sum
+        if (treeNorm != 0) {
+          f_i_tree.foreach { case (idx, impt) =>
+            val normImpt = impt / treeNorm
+            if (f_i.contains(idx)) {
+              println("it already had")
+              f_i.update(idx, f_i(idx) + normImpt)
+            }
+            else f_i.update(idx, normImpt)
+          }
+        }
+      }
+    }
+
+    val f_i_sum = f_i.values.sum
+
+    f_i.foreach { e =>
+      if (f_i_sum == 0.0 || e._2.isInfinity)
+        println("f_i_sum is 0, will be Nan " + f_i_sum + "," + e._2)
+      feature_importance.update(e._1 + 1, e._2 / f_i_sum)
+    }
+    feature_importance.toMap
+  }
+
   /**
     * 计算特征重要性
     *
     * @param trees Array[DecisionTreeModel] 随机森林子树
     * @return List[(Int, Double)] 特征重要性[(特征序号，重要性)]
     */
-  def importance(trees: Array[DecisionTreeModel], nbTagFeatures: Int) = {
+  def importance(trees: Array[DecisionTreeModel], nbTagFeatures: Int): Map[Int, Double] = {
     val f_i = new scala.collection.mutable.HashMap[Int, Double]()
     val feature_importance = mutable.Map[Int, Double]()
     for (i <- 1 to nbTagFeatures) {

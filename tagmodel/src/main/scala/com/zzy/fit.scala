@@ -7,8 +7,6 @@ import org.apache.spark.mllib.tree.RandomForest
 import org.apache.spark.mllib.tree.model.RandomForestModel
 import org.apache.spark.rdd.RDD
 
-import scala.util.parsing.json.JSON
-
 protected object fit {
   /**
     * 根据正例POS、未标注UNL集合训练模型
@@ -18,7 +16,7 @@ protected object fit {
     * @param UNL     RDD[LabeledPoint]
     * @return org.apache.spark.mllib.tree.model.RandomForestModel
     */
-  def fit(modelid: String, POS: RDD[LabeledPoint], UNL: RDD[LabeledPoint], algo_args: String) = {
+  def fit(modelid: String, POS: RDD[LabeledPoint], UNL: RDD[LabeledPoint], algo_args: String, categoryInfo: Map[Int, Int]): (Double, RandomForestModel) = {
     var c = Double.NaN
     var model_hold_out: RandomForestModel = null
     do {
@@ -27,17 +25,10 @@ protected object fit {
       val (p_test, p_train) = (splits(0), splits(1))
       // Train a RandomForest model.
       val trainData = p_train.union(UNL)
-      if (JSONObject.fromObject(algo_args).getInt("categoricalFeaturesInfo") == 1) {
-        model_hold_out = RandomForest.trainClassifier(trainData, JSONObject.fromObject(algo_args).getInt("numClasses"), Map[Int, Int](), JSONObject.fromObject(algo_args).getInt("numTrees"), JSONObject.fromObject(algo_args).getString("featureSubsetStrategy"), JSONObject.fromObject(algo_args).getString("impurity"), JSONObject.fromObject(algo_args).getInt("maxDepth"), JSONObject.fromObject(algo_args).getInt("maxBins"))
-        val hold_out_predictions = tool.predict(p_test, model_hold_out)
-        c = hold_out_predictions.sum() / hold_out_predictions.count()
-      }
-      else {
-        val map = JSON.parseFull(JSONObject.fromObject(JSONObject.fromObject(algo_args).get("categoricalFeaturesInfo")).toString()).get.asInstanceOf[Map[Int, Int]]
-        model_hold_out = RandomForest.trainClassifier(trainData, JSONObject.fromObject(algo_args).getInt("numClasses"), map, JSONObject.fromObject(algo_args).getInt("numTrees"), JSONObject.fromObject(algo_args).getString("featureSubsetStrategy"), JSONObject.fromObject(algo_args).getString("impurity"), JSONObject.fromObject(algo_args).getInt("maxDepth"), JSONObject.fromObject(algo_args).getInt("maxBins"))
-        val hold_out_predictions = tool.predict(p_test, model_hold_out)
-        c = hold_out_predictions.sum() / hold_out_predictions.count()
-      }
+      //      val categoryInfo = tool.getCategoryInfo(modelid)
+      model_hold_out = RandomForest.trainClassifier(trainData, JSONObject.fromObject(algo_args).getInt("numClasses"), categoryInfo, JSONObject.fromObject(algo_args).getInt("numTrees"), JSONObject.fromObject(algo_args).getString("featureSubsetStrategy"), JSONObject.fromObject(algo_args).getString("impurity"), JSONObject.fromObject(algo_args).getInt("maxDepth"), JSONObject.fromObject(algo_args).getInt("maxBins"))
+      val hold_out_predictions = tool.predict(p_test, model_hold_out)
+      c = hold_out_predictions.sum() / hold_out_predictions.count()
       LOG.info("c is " + c)
       if (c.isNaN) {
         LOG.error("C is Nan")
