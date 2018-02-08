@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.zzy.pu4spark
+package com.zzy
 
 import org.apache.spark.sql.DataFrame
 

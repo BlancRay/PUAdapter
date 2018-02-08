@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.zzy.pu4spark
+package com.zzy
 
 import org.apache.logging.log4j.LogManager
 import org.apache.spark.ml.Pipeline
 import org.apache.spark.ml.classification.{LogisticRegressionModel, ProbabilisticClassificationModel, ProbabilisticClassifier}
 import org.apache.spark.ml.feature.StringIndexer
-import org.apache.spark.mllib.linalg.Vector
+import org.apache.spark.ml.linalg.Vector
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions._
 

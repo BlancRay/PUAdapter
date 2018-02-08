@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.zzy.pu4spark
+package com.zzy
 
 import org.apache.spark.ml.classification._
-import org.apache.spark.mllib.linalg.Vector
+import org.apache.spark.ml.linalg.Vector
 
 /**
   * @author Nikita Astrakhantsev (astrakhantsev@ispras.ru)
@@ -28,9 +28,10 @@ case class LogisticRegressionConfig(maxIter: Int = 100,
                                     elasticNetParam: Double = 0.0)
   extends ProbabilisticClassifierConfig {
   def build(): ProbabilisticClassifier[Vector, LogisticRegression, LogisticRegressionModel] = {
-    new LogisticRegression()
+    val tmp = new LogisticRegression()
       .setLabelCol(ProbabilisticClassifierConfig.labelName).setFeaturesCol(ProbabilisticClassifierConfig.featuresName)
       .setMaxIter(maxIter).setRegParam(regParam).setElasticNetParam(elasticNetParam)
+    tmp
   }
 }
 

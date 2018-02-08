@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.zzy.pu4spark
+package com.zzy
 
 import org.apache.logging.log4j.LogManager
 import org.apache.spark.ml.Pipeline
 import org.apache.spark.ml.classification.{ProbabilisticClassificationModel, ProbabilisticClassifier}
 import org.apache.spark.ml.feature.StringIndexer
-import org.apache.spark.mllib.linalg.Vector
+import org.apache.spark.ml.linalg.Vector
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions._
 
@@ -39,7 +39,7 @@ M <: ProbabilisticClassificationModel[Vector, M]](
                                                    relNegThreshold: Double,
                                                    classifier: ProbabilisticClassifier[Vector, E, M]) extends TwoStepPULearner[E,M](classifier) {
 
-  val log = LogManager.getLogger(getClass)
+  private val log = LogManager.getLogger(getClass)
 
   override def weight(df: DataFrame, labelColumnName: String, featuresColumnName: String, finalLabel: String): DataFrame = {
     val oneStepPUDF: DataFrame = zeroStep(df, labelColumnName, featuresColumnName, finalLabel)
@@ -70,7 +70,7 @@ M <: ProbabilisticClassificationModel[Vector, M]](
 
     do {
       //learn new classifier
-      val curLabDF = curDF.filter(curDF(curLabel) !== GradualReductionPULearner.undefLabel)
+      val curLabDF = curDF.filter(curDF(curLabel) =!= GradualReductionPULearner.undefLabel)
       val newLabelIndexer = new StringIndexer()
         .setInputCol(curLabel)
         .setOutputCol(ProbabilisticClassifierConfig.labelName)
@@ -121,9 +121,9 @@ private class GradRelNegConfidenceThresholdAdder(threshold: Double, labelToConsi
 }
 
 object GradualReductionPULearner {
-  val relNegLabel = -1
-  val posLabel = 1
-  val undefLabel = 0
+  val relNegLabel: Int = -1
+  val posLabel: Int = 1
+  val undefLabel: Int = 0
 }
 
 case class GradualReductionPULearnerConfig(relNegThreshold: Double = 0.5,
