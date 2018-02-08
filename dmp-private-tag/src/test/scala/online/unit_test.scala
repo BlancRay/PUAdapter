@@ -1,4 +1,3 @@
-
 package online
 
 import java.io.{FileOutputStream, PrintWriter}
@@ -18,7 +17,7 @@ object unit_test {
     println("开始模型测试")
     //设置hadoop目录
     System.setProperty("hadoop.home.dir", "E:\\xulei\\hadoop2.6.0")
-    val path = this.getClass.getResourceAsStream("/model.properties")
+    val path = this.getClass.getResourceAsStream("../model.properties")
     prop.load(path)
     val sc = new SparkContext(new SparkConf().setAppName("RandomForestClassificationTest").setMaster("local[4]"))
     println("加载模型及参数")
