@@ -15,13 +15,13 @@
  */
 package com.zzy
 
-import org.apache.logging.log4j.LogManager
 import org.apache.spark.ml.Pipeline
 import org.apache.spark.ml.classification.{ProbabilisticClassificationModel, ProbabilisticClassifier}
 import org.apache.spark.ml.feature.StringIndexer
 import org.apache.spark.ml.linalg.Vector
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions._
+import org.slf4j.LoggerFactory
 
 /**
   * Modified Positive-Unlabeled learning algorithm; main idea is to gradually refine set of positive examples<br>
@@ -39,7 +39,7 @@ M <: ProbabilisticClassificationModel[Vector, M]](
                                                    relNegThreshold: Double,
                                                    classifier: ProbabilisticClassifier[Vector, E, M]) extends TwoStepPULearner[E,M](classifier) {
 
-  private val log = LogManager.getLogger(getClass)
+  private val log = LoggerFactory.getLogger(getClass)
 
   override def weight(df: DataFrame, labelColumnName: String, featuresColumnName: String, finalLabel: String): DataFrame = {
     val oneStepPUDF: DataFrame = zeroStep(df, labelColumnName, featuresColumnName, finalLabel)

@@ -56,7 +56,6 @@ object unit_train {
     }
     path.delete()
     println(path + ":  目录被删除")
-
   }
 
   def readData(sc: SparkContext, data: Array[String], dtype: String): RDD[LabeledPoint] = {

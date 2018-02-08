@@ -3,12 +3,8 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.zzy</groupId>
     <artifactId>dmp-private-segment</artifactId>
-    <packaging>pom</packaging>
     <version>1.0</version>
     <inceptionYear>2018</inceptionYear>
-<!--    <modules>
-        <module>..</module>
-    </modules>-->
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -16,22 +12,6 @@
         <scala.version>2.10.6</scala.version>
         <spark.version>1.3.0</spark.version>
     </properties>
-
-    <repositories>
-        <repository>
-            <id>scala-tools.org</id>
-            <name>Scala-Tools Maven2 Repository</name>
-            <url>http://scala-tools.org/repo-releases</url>
-        </repository>
-    </repositories>
-
-    <pluginRepositories>
-        <pluginRepository>
-            <id>scala-tools.org</id>
-            <name>Scala-Tools Maven2 Repository</name>
-            <url>http://scala-tools.org/repo-releases</url>
-        </pluginRepository>
-    </pluginRepositories>
 
     <dependencies>
         <dependency>
@@ -63,7 +43,7 @@
         <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
-            <version>1.8.3</version>
+            <version>1.11.2</version>
         </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>
@@ -79,7 +59,7 @@
         <dependency>
             <groupId>org.specs</groupId>
             <artifactId>specs</artifactId>
-            <version>1.2.5</version>
+            <version>1.4.3</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -92,7 +72,7 @@
                 <!-- see http://davidb.github.com/scala-maven-plugin -->
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
-                <version>3.2.0</version>
+                <version>3.3.1</version>
                 <executions>
                     <execution>
                         <goals>
@@ -158,11 +138,9 @@
     <reporting>
         <plugins>
             <plugin>
-                <groupId>org.scala-tools</groupId>
-                <artifactId>maven-scala-plugin</artifactId>
-                <configuration>
-                    <scalaVersion>${scala.version}</scalaVersion>
-                </configuration>
+                <groupId>net.alchim31.maven</groupId>
+                <artifactId>scala-maven-plugin</artifactId>
+                <version>3.3.1</version>
             </plugin>
         </plugins>
     </reporting>

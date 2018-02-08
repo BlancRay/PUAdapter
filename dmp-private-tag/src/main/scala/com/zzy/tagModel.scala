@@ -5,12 +5,12 @@ import java.util.Properties
 
 import net.sf.json.{JSONArray, JSONObject}
 import org.apache.spark.{SparkConf, SparkContext}
-import org.slf4j.LoggerFactory
+import org.slf4j.{Logger, LoggerFactory}
 
 object tagModel {
   val prop = new Properties()
   val modelIdMap = new util.HashMap[String, String]()
-  val LOG = LoggerFactory.getLogger("rf")
+  val LOG: Logger = LoggerFactory.getLogger("rf")
 
   /**
     * 根据参数model_id读取数据、训练模型、输出特征重要性、保存训练好的模型及参数

@@ -1,5 +1,7 @@
 package com.zzy
 
+import java.io.File
+
 import net.sf.json.JSONObject
 import org.apache.spark.SparkContext
 import org.apache.spark.ml.feature.LabeledPoint
@@ -41,5 +43,21 @@ object tools {
                 nominalInfo.put(i, a)
         }
         (attributeInfo, nominalInfo)
+    }
+
+    def dirDel(path: File) {
+        if (!path.exists())
+            return
+        else if (path.isFile) {
+            path.delete()
+            pu4sparktest.logger.warn(path + ":  文件被删除")
+            return
+        }
+        val file: Array[File] = path.listFiles()
+        for (d <- file) {
+            dirDel(d)
+        }
+        path.delete()
+        pu4sparktest.logger.warn(path + ":  目录被删除")
     }
 }

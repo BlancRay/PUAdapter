@@ -1,8 +1,11 @@
 package com.zzy
 
+import java.io.{File, FileOutputStream, PrintWriter}
+
 import org.apache.spark.ml.classification.{RandomForestClassificationModel, RandomForestClassifier}
 import org.apache.spark.ml.feature.StringIndexer
 import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.slf4j.{Logger, LoggerFactory}
 
 import scala.collection.mutable
 
@@ -12,14 +15,13 @@ import scala.collection.mutable
   *
   */
 object pu4sparktest {
-    //    val modelIdMap = new util.HashMap[String, String]()
-    //    val prop = new Properties()
+    val logger:Logger = LoggerFactory.getLogger(this.getClass)
     def main(args: Array[String]): Unit = {
         System.setProperty("hadoop.home.dir", "E:\\xulei\\hadoop2.6.0")
+        val sparkSession = new SparkSession.Builder().appName("RandomForestClassificationTrain").master("local[4]").getOrCreate() //本地测试，上线时修改
+//        sparkSession.sparkContext.setLogLevel("ERROR")
         //        val path = this.getClass.getResourceAsStream("/model.properties")
 //        prop.load(path)
-        val sparkSession = new SparkSession.Builder().appName("RandomForestClassificationTrain").master("local[4]").getOrCreate() //本地测试，上线时修改
-        sparkSession.sparkContext.setLogLevel("ERROR")
         val inputLabelName = "label"
         val srcFeaturesName = "features"
         val outputLabel = "outputLabel"
@@ -30,10 +32,10 @@ object pu4sparktest {
         // Load and parse the data file.
 //        val dir=this.getClass.getResource("/")
 //        println("load file from "+ dir)
-        println("read labeled as pos file")
+        logger.info("read labeled as pos file")
         val p = tools.readData(sparkSession.sparkContext, sparkSession.sparkContext.textFile("E:\\xulei\\zhiziyun\\model\\test\\pu4spark\\train_P_label"), "P")
         //正例数据
-        println("read unlabeled file")
+        logger.info("read unlabeled file")
         val u = tools.readData(sparkSession.sparkContext, sparkSession.sparkContext.textFile("E:\\xulei\\zhiziyun\\model\\test\\pu4spark\\train_U"), "U")
         //未标注数据
         val trainData = p.union(u)
@@ -42,7 +44,7 @@ object pu4sparktest {
         // binary label for positive and unlabel (inputLabelName)
         // and features assembled as vector (featuresName)
 //        df.show()
-        df.selectExpr("count(1) as count").show()
+        logger.info(df.selectExpr("count(1) as count").show().toString)
         val weightedDF = puLearner.weight(df, inputLabelName, srcFeaturesName, outputLabel)
             .selectExpr("case curLabel when -1 then 0.0 else curLabel end as curLabel", "features")
         //      .drop(outputLabel).drop("indexedFeatures")//.drop("prevLabel")
@@ -55,24 +57,40 @@ object pu4sparktest {
         //    transformeddf.selectExpr("sum(label) as sum").show()
         val classifier = new RandomForestClassifier().setMaxBins(32).setMaxDepth(30).setFeatureSubsetStrategy("auto").setImpurity("gini").setNumTrees(512)
         val model = classifier.setLabelCol("label").fit(transformeddf)
-        println("model has been fitted,saving model")
+        logger.info("model has been fitted,saving model")
+        tools.dirDel(new File("E:\\xulei\\zhiziyun\\model\\test\\pu4spark\\model"))
         model.save("E:\\xulei\\zhiziyun\\model\\test\\pu4spark\\model")
 
-        println("get feature importance")
+        logger.info("get feature importance.csv")
         val feature_importance = getFeatureImportance(model)
         //    feature_importance.takeRight(10).foreach(each=>println(each))
+        var writer = new PrintWriter(new FileOutputStream("E:\\xulei\\zhiziyun\\model\\test\\pu4spark\\importance.csv"))
+        feature_importance.foreach { each =>
+            writer.println(each._1 + "," + each._2)
+        }
+        writer.close()
 
-        println("read test data")
+        logger.info("read test data")
         val n = tools.readData(sparkSession.sparkContext, sparkSession.sparkContext.textFile("E:\\xulei\\zhiziyun\\model\\test\\pu4spark\\train_All"), "N")
         //测试数据
         val df_n = sqlContext.createDataFrame(n)
-        println("get predictions from test data")
+        logger.info("get predictions from test data")
         val pred = model.transform(df_n)
         //    pred.select("prediction").dropDuplicates().show()
-        println("get similarities")
-        val similar = statistics(pred,1,0.01).toMap
+        writer = new PrintWriter(new FileOutputStream("E:\\xulei\\zhiziyun\\model\\test\\pu4spark\\train_All.pred"))
+        pred.select().foreach{
+            each=>
+                writer.println(each)
+        }
+        writer.close()
 
-
+        logger.info("get similarities")
+        val similar = statistics(pred,0.01,1).toMap
+        writer = new PrintWriter(new FileOutputStream("E:\\xulei\\zhiziyun\\model\\test\\pu4spark\\similar.csv"))
+        similar.foreach { each =>
+            writer.println(each._1 + "," + each._2)
+        }
+        writer.close()
         //    val assembler = new VectorAssembler()
         //      .setInputCols(df.columns.filter(c => c != "features")) //keep here only feature columns
         //      .setOutputCol("featuresName")
@@ -94,7 +112,7 @@ object pu4sparktest {
                 i = i + 1
             }
         }
-        feature_importance.toList.sortBy(_._2)
+        feature_importance.toList.sortBy(_._2).reverse
     }
 
     def statistics(proba: DataFrame, threshold: Double, ratio: Double): mutable.Map[Double, Int] = {
