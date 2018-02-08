@@ -3,9 +3,16 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.zzy</groupId>
     <artifactId>dmp-private-segment</artifactId>
+    <packaging>pom</packaging>
     <version>1.0</version>
-    <inceptionYear>2008</inceptionYear>
+    <inceptionYear>2018</inceptionYear>
+<!--    <modules>
+        <module>..</module>
+    </modules>-->
     <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <encoding>UTF-8</encoding>
         <scala.version>2.10.6</scala.version>
         <spark.version>1.3.0</spark.version>
     </properties>

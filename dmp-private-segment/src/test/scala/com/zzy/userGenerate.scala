@@ -71,8 +71,7 @@ object userGenerate {
           print("intensity = " + intensity)
           sys.exit()
         }
-        data.append("TAG_").append(tagId + ",")
-          .append(intensity)
+        data.append("TAG_").append(tagId + ",").append(intensity)
         //        add in gidTag
         gidTag.append(data.toString)
 
@@ -201,12 +200,13 @@ object userGenerate {
     job.setOutputFormatClass(classOf[TableOutputFormat[ImmutableBytesWritable]])
 
     val inPutRDD = sc.makeRDD(data) //构建两行记录
-    val rdd = inPutRDD.map(_.split(',')).map { arr => {
-      val put = new Put(Bytes.toBytes(arr(0))) //行健的值
-      put.addColumn(Bytes.toBytes("info"), Bytes.toBytes(arr(1)), Bytes.toBytes(arr(2))) //info:name列的值
-      put.addColumn(Bytes.toBytes("info"), Bytes.toBytes(arr(3)), Bytes.toBytes(arr(4))) //info:gender列的值
-      (new ImmutableBytesWritable, put)
-    }
+    val rdd = inPutRDD.map(_.split(',')).map {
+      arr => {
+        val put = new Put(Bytes.toBytes(arr(0))) //行健的值
+        put.addColumn(Bytes.toBytes("info"), Bytes.toBytes(arr(1)), Bytes.toBytes(arr(2))) //info:name列的值
+        put.addColumn(Bytes.toBytes("info"), Bytes.toBytes(arr(3)), Bytes.toBytes(arr(4))) //info:gender列的值
+        (new ImmutableBytesWritable, put)
+      }
     }
     rdd.saveAsNewAPIHadoopDataset(job.getConfiguration)
   }

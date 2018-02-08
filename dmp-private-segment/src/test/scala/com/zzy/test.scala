@@ -9,10 +9,6 @@ import org.apache.spark.{SparkConf, SparkContext}
 
 object test {
   def main(args: Array[String]): Unit = {
-    for (i<-1 to 2){
-      println(i)
-    }
-    sys.exit()
     val conf = new SparkConf().setAppName("RandomForestClassificationTrain").setMaster("local[4]")//本地测试，上线时修改
     val sc = new SparkContext(conf)
     val modelinfo = JSONObject.fromObject(tool.postDataToURL(prop.getProperty("model_info"), modelIdMap)).get("outBean").toString

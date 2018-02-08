@@ -26,11 +26,10 @@ object rf {
     //    System.setProperty("hadoop.home.dir", "E:\\xulei\\hadoop2.6.0")
     //    val modelid = "16"
     //    val sc = new SparkContext(new SparkConf().setAppName("RandomForestClassificationTrain").setMaster("local[4]"))
-    //    prop.load(new BufferedInputStream(new FileInputStream("E:\\xulei\\IdeaProjects\\demo\\model.properties")))
+    //    prop.load(this.getClass.getResourceAsStream("../model.properties"))
 
     val modelid = args(0)
-    val sc = new SparkContext(
-      new SparkConf().setAppName("RandomForestClassificationTrain"))
+    val sc = new SparkContext(new SparkConf().setAppName("RandomForestClassificationTrain"))
     prop.load(new BufferedInputStream(new FileInputStream(args(1))))
 
     tool.log(modelid, "调用算法训练模型开始", "1", prop.getProperty("log"))
