@@ -32,7 +32,7 @@ object tool {
   }
 
   def getAttributeInfo(modelid: String): (mutable.Map[Int, Int], mutable.Map[Int, Int]) = {
-    val featureInfoJson = JSONObject.fromObject(JSONObject.fromObject(tool.postDataToURL(prop.getProperty("category_info"), modelIdMap)).get("result"))
+    val featureInfoJson = JSONObject.fromObject(JSONObject.fromObject(tool.postDataToURL(prop.getProperty("tagindex"), modelIdMap)).get("result"))
     val nominalInfo = mutable.Map[Int, Int]()
     val attributeInfo = mutable.Map[Int, Int]()
     for (i <- 0 until featureInfoJson.size()) {

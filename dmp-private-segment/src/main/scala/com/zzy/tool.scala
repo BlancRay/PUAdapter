@@ -23,13 +23,20 @@ import org.jsoup.Jsoup
 import scala.collection.mutable
 
 object tool {
-  def predict(points: RDD[LabeledPoint], model: RandomForestModel): RDD[Double] = {
-    val numTrees = model.trees.length
-    val trees = points.sparkContext.broadcast(model.trees)
-    points.map { point =>
-      trees.value.map(_.predict(point.features)).sum / numTrees
+    /**
+      * 计算模型对数据的预测概率
+      *
+      * @param points RDD[LabeledPoint]
+      * @param model  RandomForestModel
+      * @return RDD[Double] 预测为正例的概率
+      */
+    def predict(points: RDD[LabeledPoint], model: RandomForestModel): RDD[Double] = {
+        val numTrees = model.trees.length
+        val trees = points.sparkContext.broadcast(model.trees)
+        points.map { point =>
+            trees.value.map(_.predict(point.features)).sum / numTrees
+        }
     }
-  }
 
   /**
     *
@@ -117,9 +124,9 @@ object tool {
     * @param modelid String 模型id
     */
   def save(model: RandomForestModel, estC: Double, model_info: String, modelid: String, sc: SparkContext) {
-    log(modelid, "正在保存模型", "1", prop.getProperty("log"))
+    log("正在保存模型", "1")
     if (prop.getProperty("hdfs_dir") == "") {
-      log(modelid, "模型保存地址为空", "-1", prop.getProperty("log"))
+      log("模型保存地址为空", "-1")
       return
       //      sys.exit(-1)
     }
@@ -134,15 +141,15 @@ object tool {
     LOG.info(input_map.toString)
     val flg = postDataToURL(prop.getProperty("tmpparam"), input_map)
     LOG.info(flg)
-    log(modelid, "模型已保存", "1", prop.getProperty("log"))
+    log("模型已保存", "1")
   }
 
-  def log(modelid: String, msg: String, status: String, url: String) {
+  def log(msg: String, status: String) {
     val date = new Date()
-    val dateFormat: SimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss")
+    val dateFormat: SimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
     val nowtime = dateFormat.format(date)
     val log_MAP = new util.HashMap[String, String]()
-    log_MAP.put("modelId", modelid)
+    log_MAP.put("modelId", modelIdMap.get("modelId"))
     log_MAP.put("createTime", nowtime)
     log_MAP.put("status", status)
     log_MAP.put("log", msg)
@@ -153,7 +160,7 @@ object tool {
     val log_input_map = new util.HashMap[String, String]()
     log_input_map.put("key4token", "dmp")
     log_input_map.put("input", JSONObject.fromObject(log_MAP).toString)
-    postDataToURL(url, log_input_map)
+    postDataToURL(prop.getProperty("log"), log_input_map)
   }
 
   def postDataToURL(url: String, params: util.HashMap[String, String]): String = {

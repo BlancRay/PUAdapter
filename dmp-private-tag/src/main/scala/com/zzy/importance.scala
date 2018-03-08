@@ -10,7 +10,7 @@ protected object importance {
     val f_i = new mutable.HashMap[Int, Double]()
     val feature_importance = mutable.Map[Int, Double]()
     for (i <- 1 to nbTagFeatures) {
-      feature_importance.put(i, 0.0)
+      feature_importance.put(i, Double.NaN)
     }
     for (tree <- trees) {
       if (!tree.topNode.isLeaf) {
@@ -23,7 +23,7 @@ protected object importance {
           f_i_tree.foreach { case (idx, impt) =>
             val normImpt = impt / treeNorm
             if (f_i.contains(idx)) {
-              println("it already had")
+              LOG.error("it already had")
               f_i.update(idx, f_i(idx) + normImpt)
             }
             else f_i.update(idx, normImpt)
@@ -36,7 +36,7 @@ protected object importance {
 
     f_i.foreach { e =>
       if (f_i_sum == 0.0 || e._2.isInfinity)
-        println("f_i_sum is 0, will be Nan " + f_i_sum + "," + e._2)
+        LOG.error("f_i_sum is 0, will be Nan " + f_i_sum + "," + e._2)
       feature_importance.update(e._1 + 1, e._2 / f_i_sum)
     }
     feature_importance.toMap

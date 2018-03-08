@@ -22,9 +22,9 @@ object tagModel {
 
     //设置hadoop目录
     System.setProperty("hadoop.home.dir", "E:\\xulei\\hadoop2.6.0")
-    //    val modelid = "16"
+        val modelid = "9"
     val sc = new SparkContext(new SparkConf().setAppName("RandomForestClassificationTrain").setMaster("local[4]"))
-    val modelid = args(0)
+//    val modelid = args(0)
     //    val sc = new SparkContext(new SparkConf().setAppName("RandomForestClassificationTrain"))
     val path = this.getClass.getResourceAsStream("/model.properties")
     prop.load(path)
