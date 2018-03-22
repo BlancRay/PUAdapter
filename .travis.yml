@@ -20,7 +20,7 @@ notifications:
 before_install:
 
 install:
-  - cd BidTree && mvn install -DskipTests=true -Dmaven.javadoc.skip=true
+  - mvn install -DskipTests=true -Dmaven.javadoc.skip=true
 #  - cd ../dmp-private-segment && mvn install -DskipTests=true -Dmaven.javadoc.skip=true
 #  - cd ../dmp-private-tag && mvn install -DskipTests=true -Dmaven.javadoc.skip=true
 #  - cd ../pu4spark && mvn clean -DskipTests=true -Dmaven.javadoc.skip=true

@@ -1,4 +1,7 @@
 # TWO PU-learning tools on spark
+
+[![Build Status](https://www.travis-ci.org/xuleiboy1234/PUAdapter.svg?branch=master)](https://www.travis-ci.org/xuleiboy1234/PUAdapter)
+
 ## PUAdapter
 A set of machine learning tools and algorithms for learning from positive and unlabeled datasets.
 
@@ -34,6 +37,3 @@ Pseudo code was taken from:
 >Fusilier, D. H., Montes-y-Gómez, M., Rosso, P., & Cabrera, R. G. (2015).
 Detecting positive and negative deceptive opinions using PU-learning.
 Information Processing & Management, 51(4), 433-443.
-
-***
-[![Build Status](https://www.travis-ci.org/xuleiboy1234/PUAdapter.svg?branch=master)](https://www.travis-ci.org/xuleiboy1234/PUAdapter)
