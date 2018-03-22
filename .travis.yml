@@ -17,11 +17,13 @@ notifications:
   email: false
 
 # 5. Run maven install before running lint-java.
+before_install:
+
 install:
-  - cd BidTree && mvn clean install -DskipTests=true -Dmaven.javadoc.skip=true
-  - cd ../dmp-private-segment && mvn clean install -DskipTests=true -Dmaven.javadoc.skip=true
-  - cd ../dmp-private-tag && mvn clean install -DskipTests=true -Dmaven.javadoc.skip=true
-  - cd ../pu4spark && mvn clean install -DskipTests=true -Dmaven.javadoc.skip=true
+  - cd BidTree && mvn install -DskipTests=true -Dmaven.javadoc.skip=true
+#  - cd ../dmp-private-segment && mvn install -DskipTests=true -Dmaven.javadoc.skip=true
+#  - cd ../dmp-private-tag && mvn install -DskipTests=true -Dmaven.javadoc.skip=true
+#  - cd ../pu4spark && mvn clean -DskipTests=true -Dmaven.javadoc.skip=true
 
 # 6. Run mvn test.
 script:
