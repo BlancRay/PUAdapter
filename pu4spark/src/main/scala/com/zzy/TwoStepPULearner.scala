@@ -64,7 +64,7 @@ M <: ProbabilisticClassificationModel[Vector, M]](
     val featureIndexer = new VectorIndexer()
       .setInputCol(featuresColumnName)
       .setOutputCol(ProbabilisticClassifierConfig.featuresName)
-      .setMaxCategories(4)  //features with > 4 distinct values are treated as continuous.
+        .setMaxCategories(20) //features with > 4 distinct values are treated as continuous.
 
     val pipeline = new Pipeline().setStages(Array(labelIndexer, featureIndexer))
     val preparedDf = pipeline.fit(df).transform(df)

@@ -24,8 +24,10 @@ object tools {
             val dv: Vector = Vectors.dense(feature)
             if (dtype == "P")
                 lp.update(i, LabeledPoint(1, dv))
-            else
+            else if (dtype == "U")
                 lp.update(i, LabeledPoint(0, dv))
+            else if (dtype == "N")
+                if (i < 700) lp.update(i, LabeledPoint(1, dv)) else lp.update(i, LabeledPoint(0, dv))
             i += 1
         }
         sc.makeRDD(lp)

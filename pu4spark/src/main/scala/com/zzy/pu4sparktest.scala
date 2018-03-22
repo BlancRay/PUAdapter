@@ -4,6 +4,7 @@ import java.io.{File, FileOutputStream, PrintWriter}
 
 import org.apache.spark.ml.classification.{RandomForestClassificationModel, RandomForestClassifier}
 import org.apache.spark.ml.feature.StringIndexer
+import org.apache.spark.ml.linalg.DenseVector
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -47,14 +48,9 @@ object pu4sparktest {
         logger.info(df.selectExpr("count(1) as count").show().toString)
         val weightedDF = puLearner.weight(df, inputLabelName, srcFeaturesName, outputLabel)
             .selectExpr("case curLabel when -1 then 0.0 else curLabel end as curLabel", "features")
-        //      .drop(outputLabel).drop("indexedFeatures")//.drop("prevLabel")
-        //    weightedDF.select("curLabel").dropDuplicates().show()
-        //    weightedDF.selectExpr("sum(curLabel) as sum").show()
-        //    weightedDF.select("prevLabel","curLabel").dropDuplicates().show()
         val indexer = new StringIndexer().setInputCol("curLabel").setOutputCol("label").fit(weightedDF)
+
         val transformeddf = indexer.transform(weightedDF)
-        //    transformeddf.select("label").dropDuplicates().show()
-        //    transformeddf.selectExpr("sum(label) as sum").show()
         val classifier = new RandomForestClassifier().setMaxBins(32).setMaxDepth(30).setFeatureSubsetStrategy("auto").setImpurity("gini").setNumTrees(512)
         val model = classifier.setLabelCol("label").fit(transformeddf)
         logger.info("model has been fitted,saving model")
@@ -78,9 +74,10 @@ object pu4sparktest {
         val pred = model.transform(df_n)
         //    pred.select("prediction").dropDuplicates().show()
         writer = new PrintWriter(new FileOutputStream("E:\\xulei\\zhiziyun\\model\\test\\pu4spark\\train_All.pred"))
-        pred.select().foreach{
-            each=>
-                writer.println(each)
+        pred.select("label", "probability").collect().foreach { each =>
+            val label = each.getDouble(0)
+            val prob = each.getAs[DenseVector](1)
+            writer.println(label + "," + prob.apply(1))
         }
         writer.close()
 
