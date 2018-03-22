@@ -113,15 +113,7 @@ protected object importance {
     val right = node.rightNode.get
 
     if (!left.isLeaf) {
-      var p1 = (node.impurity - node.stats.get.gain - right.impurity) / (left.impurity - right.impurity)
-      if (p1.isInfinite) {
-        LOG.error("p1 is " + p1 + "\tpercent is " + percent + " p1 isLeaf=" + left.isLeaf + " Node isLeaf=" + node.isLeaf)
-        LOG.error("(" + node.impurity + " - " + node.stats.get.gain + " - " + right.impurity + ") / (" + left.impurity + " - " + right.impurity + ")")
-      } //debug
-      if (p1.isNaN)
-        p1 = 0.5
-      //in case p1 is Nan
-      val left_Map = scan(left, p1 * percent)
+        val left_Map = scan(left, node.predict.prob * percent)
       left_Map.foreach { e =>
         if (impurity.contains(e._1)) {
           val curImpurity: Double = impurity(e._1) + e._2
@@ -131,13 +123,7 @@ protected object importance {
           impurity.put(e._1, e._2)
       }
     } else if (!right.isLeaf) {
-      var p2 = (node.impurity - node.stats.get.gain - left.impurity) / (right.impurity - left.impurity)
-      if (p2.isInfinite)
-        LOG.error("p1 is " + p2 + "\tpercent is " + percent) //debug
-      if (p2.isNaN)
-        p2 = 0.5
-      //in case p2 is Nan
-      val right_Map = scan(right, p2 * percent)
+        val right_Map = scan(right, node.predict.prob * percent)
       right_Map.foreach { e =>
         if (impurity.contains(e._1)) {
           val curImpurity: Double = impurity(e._1) + e._2
