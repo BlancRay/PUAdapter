@@ -1,0 +1,28 @@
+# 1. Choose OS (Ubuntu 14.04.3 LTS Server Edition 64bit, ~2 CORE, 7.5GB RAM)
+sudo: required
+dist: trusty
+
+# 2. Choose language and target JDKs for parallel builds.
+language: java
+jdk:
+  - oraclejdk8
+
+# 3. Setup cache directory for Maven.
+cache:
+  directories:
+  - $HOME/.m2
+
+# 4. Turn off notifications.
+notifications:
+  email: false
+
+# 5. Run maven install before running lint-java.
+install:
+  - cd BidTree && mvn clean install -DskipTests=true -Dmaven.javadoc.skip=true
+  - cd dmp-private-segment && mvn clean install -DskipTests=true -Dmaven.javadoc.skip=true
+  - cd dmp-private-tag && mvn clean install -DskipTests=true -Dmaven.javadoc.skip=true
+  - cd pu4spark && mvn clean install -DskipTests=true -Dmaven.javadoc.skip=true
+
+# 6. Run mvn test.
+script:
+  - mvn test
