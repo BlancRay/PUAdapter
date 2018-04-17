@@ -117,7 +117,7 @@ object tool {
                     val GID_TAG_SET = hbaseresult.split(";")
                     GID_TAG_SET.foreach { each =>
                         val tag_split = each.split(":")
-                        if (attributeInfo(traitIDIndex(tag_split(0))) == 1)
+                        if (attributeInfo(traitIDIndex(tag_split(0))) == 1) //根据特征的value数量判断是否是离散型,数量为1，则为连续型
                             GID_TAG_split.put(traitIDIndex(tag_split(0)), tag_split(1).toDouble)
                         else
                             GID_TAG_split.put(traitIDIndex(tag_split(0)), tag_split(1).toInt)
