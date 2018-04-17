@@ -40,6 +40,13 @@ object Demo {
         println(prob.collect().toList.toString())
     }
 
+    /**
+      * 遍历树的节点，输出决策规则和概率
+      *
+      * @param topNode      节点
+      * @param indentFactor 缩进
+      * @return String if...else...
+      */
     def subtreeToString(topNode: Node, indentFactor: Int = 0): String = {
         def splitToString(split: Split, left: Boolean): String = {
             split.featureType match {
@@ -70,6 +77,13 @@ object Demo {
         }
     }
 
+    /**
+      * 递归查询输入数据的预测概率
+      *
+      * @param node     节点
+      * @param features vector
+      * @return probability of label 1
+      */
     def predict(node: Node, features: Vector): Double = {
         if (node.isLeaf) {
             if (node.predict.predict == 0)
