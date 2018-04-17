@@ -1,6 +1,6 @@
 # TWO PU-learning tools on spark
 
-[![Build Status](https://www.travis-ci.org/xuleiboy1234/PUAdapter.svg?branch=master)](https://www.travis-ci.org/xuleiboy1234/PUAdapter)
+[![Build Status](https://www.travis-ci.org/BlancRay/PUAdapter.svg?branch=master)](https://www.travis-ci.org/xuleiboy1234/PUAdapter)
 
 ## PUAdapter
 A set of machine learning tools and algorithms for learning from positive and unlabeled datasets.
