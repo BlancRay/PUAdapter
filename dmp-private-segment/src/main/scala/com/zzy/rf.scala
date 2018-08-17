@@ -5,6 +5,8 @@ import java.util
 import java.util.Properties
 
 import net.sf.json.{JSONArray, JSONObject}
+import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.fs.FileSystem
 import org.apache.spark.{SparkConf, SparkContext}
 import org.jsoup.HttpStatusException
 import org.slf4j.{Logger, LoggerFactory}
@@ -23,14 +25,19 @@ object rf {
         LOG.info("\n\n\n调用算法训练模型")
 
         //设置hadoop目录
-        //        System.setProperty("hadoop.home.dir", "E:\\xulei\\hadoop2.6.0")
-        //        val modelid = "16"
-        //        val sc = new SparkContext(new SparkConf().setAppName("RandomForestClassificationTrain").setMaster("local[4]"))
-        //        prop.load(new FileInputStream("E:\\xulei\\IdeaProjects\\dmp-private-segment\\model.properties"))
+        //        System.setProperty("HADOOP_USER_NAME", "hdfs")
+        val conf = new Configuration()
+        val hdfs = FileSystem.get(conf)
+        LOG.info(hdfs.getUri.toString)
+
+        //        val modelid = "34"
+        //        val sc = new SparkContext(new SparkConf().setAppName("dmp-private-segment").setMaster("local[4]"))
+        //        prop.load(new FileInputStream("E:\\xulei\\IdeaProjects\\dmp\\dmp-private-segment\\model.properties"))
 
         val modelid = args(0)
         val sc = new SparkContext(new SparkConf().setAppName("dmp-private-segment"))
         prop.load(new BufferedInputStream(new FileInputStream(args(1))))
+        prop.setProperty("hdfs_dir", hdfs.getUri.toString)
 
         modelIdMap.put("key4token", "dmp")
         modelIdMap.put("modelId", modelid)
@@ -121,7 +128,10 @@ object rf {
         } catch {
             case httpError: HttpStatusException =>
                 LOG.error("服务器错误，Status code：" + httpError.getStatusCode)
-            case e: Throwable =>
+            case t: Throwable =>
+                tool.log("模型训练错误", "-1")
+                LOG.error("模型训练错误\n" + t.printStackTrace())
+            case e: Exception =>
                 tool.log("模型训练错误", "-1")
                 LOG.error("模型训练错误\n" + e.printStackTrace())
         }

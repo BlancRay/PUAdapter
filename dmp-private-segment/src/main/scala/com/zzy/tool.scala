@@ -48,6 +48,7 @@ object tool {
     val HBconf = HBaseConfiguration.create()
     HBconf.set("hbase.zookeeper.property.clientPort", prop.getProperty("hbase_clientPort"))
     HBconf.set("hbase.zookeeper.quorum", prop.getProperty("hbase_quorum")) //"kylin-node4,kylin-node3,kylin-node2"
+    HBconf.set("zookeeper.znode.parent", prop.getProperty("hbase_znode"))
     if (Type.contains("P"))
       HBconf.set(TableInputFormat.INPUT_TABLE, prop.getProperty("p_source_table"))
     else if (Type.contains("U"))
@@ -131,7 +132,7 @@ object tool {
       //      sys.exit(-1)
     }
     LOG.info("保存模型")
-    println(JSONObject.fromObject(model_info).get("model_dir"))
+    LOG.info(prop.getProperty("hdfs_dir") + JSONObject.fromObject(model_info).get("model_dir"))
     model.save(sc, prop.getProperty("hdfs_dir") + JSONObject.fromObject(model_info).get("model_dir") + "/" + modelid)
     //模型保存在hdfs上
     LOG.info("保存成功")
