@@ -24,4 +24,3 @@ install:
 
 # 6. Run mvn test.
 script:
-- mvn test
