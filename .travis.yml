@@ -20,7 +20,7 @@ notifications:
 before_install:
 
 install:
-- cd ./BidTree && mvn install -DskipTests=true -Dmaven.javadoc.skip=true && cd ../dmp-private-segment && mvn install -DskipTests=true -Dmaven.javadoc.skip=true && cd ../dmp-private-tag && mvn install -DskipTests=true -Dmaven.javadoc.skip=true && cd ../pu4spark && mvn install -DskipTests=true -Dmaven.javadoc.skip=true
+- cd ./BidTree && mvn install -B -DskipTests=true -Dmaven.javadoc.skip=true && cd ../dmp-private-segment && mvn install -B -DskipTests=true -Dmaven.javadoc.skip=true && cd ../dmp-private-tag && mvn install -B -DskipTests=true -Dmaven.javadoc.skip=true && cd ../pu4spark && mvn install -B -DskipTests=true -Dmaven.javadoc.skip=true
 
 # 6. Run mvn test.
 script:
