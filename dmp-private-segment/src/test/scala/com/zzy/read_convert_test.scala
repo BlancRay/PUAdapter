@@ -18,13 +18,15 @@ import org.apache.spark.mllib.tree.model.RandomForestModel
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
 
+import scala.collection.mutable
+
 object read_convert_test {
   val prop = new Properties()
   val modelIdMap = new util.HashMap[String, String]()
 
   def main(args: Array[String]): Unit = {
     System.setProperty("hadoop.home.dir", "E:\\xulei\\hadoop2.6.0")
-    val modelid = "16"
+    val modelid = "9"
     val sc = new SparkContext(new SparkConf().setAppName("importance_test").setMaster("local[4]"))
     val path = this.getClass.getResourceAsStream("/model.properties")
     prop.load(path)
@@ -70,49 +72,51 @@ object read_convert_test {
     val conn = ConnectionFactory.createConnection(HBconf)
     //根据Type读取对应数据
     val data_source = sc.newAPIHadoopRDD(HBconf, classOf[TableInputFormat], classOf[ImmutableBytesWritable], classOf[org.apache.hadoop.hbase.client.Result])
-    val count = data_source.count()
+    //    val count = data_source.count()
     //    println(count)
     val res = data_source.map { case (_, each) =>
       //从SOURCE表中读取的某个GID的ROWKEY
       //从SOURCE表中读取的某个GID的column标签集合
       (Bytes.toString(each.getRow), Bytes.toString(each.getValue("info".getBytes, "feature".getBytes)))
-    }.take(count.toInt)
-    val gid = new Array[String](count.toInt)
-    val lp = new Array[LabeledPoint](count.toInt)
-    var i = 0
+    }
+    //    }.take(count.toInt)
+    //    val gid = new Array[String](count.toInt)
+    //    val lp = new Array[LabeledPoint](count.toInt)
+    //    var i = 0
 
     val factors = Array.range(0, nbTagFeatures)
-    res.foreach { case (rowkey, hbaseresult) =>
-      gid(i) = rowkey
-      val GID_TAG_split = new scala.collection.mutable.HashMap[Int, Double]()
+    val result = res.map { each =>
+      val gid = each._1
+      val hbaseresult = each._2
+      val GID_TAG_split = new mutable.HashMap[Int, Double]()
       if (hbaseresult != "") {
         val GID_TAG_SET = hbaseresult.split(";")
+        var is_time = true
         GID_TAG_SET.foreach { each =>
           val tag_split = each.split(":")
-          GID_TAG_split.put(tag_split(0).toInt, tag_split(1).toDouble)
+          if (is_time) {
+            GID_TAG_split.put(tag_split(0).toInt, tag_split(1).toDouble / 3600000)
+            is_time = false
+          } else
+            GID_TAG_split.put(tag_split(0).toInt, tag_split(1).toDouble)
         }
       }
-      //      println(rowkey,hbaseresult)
-      //从MODEL_TAG_INDEX表中读取modelID的所有标签 getTagIndexInfoByModelId
-
-      //
       val feature = new Array[Double](factors.length)
-      factors.foreach { each =>
-        if (GID_TAG_split.contains(each + 1)) {
-          feature(each) = GID_TAG_split(each + 1)
-        } else {
-          feature(each) = 0
-        }
+      for (j <- feature.indices) {
+        feature(j) = feature(j)
+      }
+      val dv: Vector = Vectors.dense(feature)
+      var lp: LabeledPoint = null
+      if (Type.contains("P")) {
+        lp = LabeledPoint(1, dv)
       }
 
-      val dv: Vector = Vectors.dense(feature)
-      if (Type.contains("P"))
-        lp.update(i, LabeledPoint(1, dv))
-      else
-        lp.update(i, LabeledPoint(0, dv))
-      i += 1
+      else {
+        lp = LabeledPoint(0, dv)
+      }
+      (gid, lp)
     }
     conn.close()
-    (sc.makeRDD(gid), sc.makeRDD(lp))
+    (result.map(_._1), result.map(_._2))
   }
 }
