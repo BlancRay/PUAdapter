@@ -1,6 +1,6 @@
 package com.zzy
 
-import com.zzy.rf.LOG
+import com.zzy.rf.{LOG, prop}
 import net.sf.json.JSONObject
 import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.mllib.tree.RandomForest
@@ -30,6 +30,12 @@ protected object fit {
             LOG.info(s"train instances ${p_train.count()},test instances ${p_test.count()}")
             // Train a RandomForest model.
             val trainData = p_train.union(UNL)
+            val numPartition = prop.getProperty("train_partitions").toInt
+            if (numPartition == -1)
+                trainData.repartition((trainData.count() / 1000).toInt)
+            else
+                trainData.repartition(numPartition)
+            LOG.info(s"训练数据Partition=${trainData.getNumPartitions}")
             if (JSONObject.fromObject(algo_args).getInt("categoricalFeaturesInfo") == 1) {
                 LOG.info("categoricalFeaturesInfo=1")
                 model_hold_out = RandomForest.trainClassifier(trainData, JSONObject.fromObject(algo_args).getInt("numClasses"), Map[Int, Int](), JSONObject.fromObject(algo_args).getInt("numTrees"), JSONObject.fromObject(algo_args).getString("featureSubsetStrategy"), JSONObject.fromObject(algo_args).getString("impurity"), JSONObject.fromObject(algo_args).getInt("maxDepth"), JSONObject.fromObject(algo_args).getInt("maxBins"))
