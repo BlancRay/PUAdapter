@@ -78,37 +78,43 @@ object tool {
 
         LOG.info("所有标签特征数量:" + nbTagFeatures.toString)
         val factors = Array.range(0, nbTagFeatures)
-        val result = res.map { each =>
-            val gid = each._1
-            val hbaseresult = each._2
+        val result = res.map { res_each =>
+            val gid = res_each._1
+            val hbaseresult = res_each._2
             val GID_TAG_split = new mutable.HashMap[Int, Double]()
             if (hbaseresult != "") {
                 val GID_TAG_SET = hbaseresult.split(";")
                 var is_time = true
-                GID_TAG_SET.foreach { each =>
-                    val tag_split = each.split(":")
+                GID_TAG_SET.foreach { set_each =>
+                    val tag_split = set_each.split(":")
                     if (is_time) {
                         GID_TAG_split.put(tag_split(0).toInt, tag_split(1).toDouble / 3600000)
                         is_time = false
-                    } else
+                    } else {
                         GID_TAG_split.put(tag_split(0).toInt, tag_split(1).toDouble)
+                        is_time = true
+                    }
                 }
             }
             val feature = new Array[Double](factors.length)
-            for (j <- feature.indices) {
-                feature(j) = feature(j)
+            factors.foreach { f_each =>
+                if (GID_TAG_split.contains(f_each + 1)) {
+                    feature(f_each) = GID_TAG_split(f_each + 1)
+                } else {
+                    feature(f_each) = 0
+                }
             }
             val dv: Vector = Vectors.dense(feature)
             var lp: LabeledPoint = null
             if (Type.contains("P")) {
                 lp = LabeledPoint(1, dv)
             }
-
             else {
                 lp = LabeledPoint(0, dv)
             }
             (gid, lp)
         }
+        LOG.info("sampled %s like %s".format(Type, result.take(1).toList.toString()))
         conn.close()
         (result.map(_._1), result.map(_._2))
     }
