@@ -97,13 +97,19 @@ object read_convert_test {
           if (is_time) {
             GID_TAG_split.put(tag_split(0).toInt, tag_split(1).toDouble / 3600000)
             is_time = false
-          } else
+          } else {
             GID_TAG_split.put(tag_split(0).toInt, tag_split(1).toDouble)
+              is_time = true
+          }
         }
       }
       val feature = new Array[Double](factors.length)
-      for (j <- feature.indices) {
-        feature(j) = feature(j)
+        factors.foreach { each =>
+            if (GID_TAG_split.contains(each + 1)) {
+                feature(each) = GID_TAG_split(each + 1)
+            } else {
+                feature(each) = 0
+            }
       }
       val dv: Vector = Vectors.dense(feature)
       var lp: LabeledPoint = null
