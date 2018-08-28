@@ -48,19 +48,16 @@ object rf {
             tool.log("读取模型参数", "1")
             val modelinfo = JSONObject
                 .fromObject(
-                    tool.postDataToURL(prop.getProperty("model_info"), modelIdMap))
+                    tool.postDataToURL(prop.getProperty("model_info"), modelIdMap)
+                )
                 .get("outBean")
                 .toString
             LOG.info("模型信息:" + modelinfo)
-            val algo_args =
-                JSONObject.fromObject(modelinfo).get("algorithm_args").toString
-            val model_args =
-                JSONObject.fromObject(modelinfo).get("model_args").toString
+            val algo_args = JSONObject.fromObject(modelinfo).get("algorithm_args").toString
+            val model_args = JSONObject.fromObject(modelinfo).get("model_args").toString
 
-            val TagIndexInfo =
-                tool.postDataToURL(prop.getProperty("tagindex"), modelIdMap)
-            val TagArray =
-                JSONArray.fromObject(JSONObject.fromObject(TagIndexInfo).get("result"))
+            val TagIndexInfo = tool.postDataToURL(prop.getProperty("tagindex"), modelIdMap)
+            val TagArray = JSONArray.fromObject(JSONObject.fromObject(TagIndexInfo).get("result"))
             //read p u data
             tool.log("读取种子人群", "1")
 
@@ -93,36 +90,39 @@ object rf {
             }
 
             LOG.info("写入模型影响因子")
-            tool.postArrayToURL(modelid,
-                prop.getProperty("influence"),
-                importance_mapArray)
+            tool.postArrayToURL(modelid, prop.getProperty("influence"), importance_mapArray)
             tool.log("模型影响因子保存完成", "1")
             LOG.info(feature_importance.toList.sortBy(_._2).toString)
 
             LOG.info("开始计算相似度")
-            val proba =
-                model_test.evaluate(model, estC, modelid, sc, TagArray.size()).collect()
+            val proba = model_test.evaluate(model, estC, modelid, sc, TagArray.size()).collect()
             tool.log("生成相似度与个体数量关系", "1")
             val similar = similarity
-                .statistics(proba,
+                .statistics(
+                    proba,
                     JSONObject.fromObject(model_args).getDouble("delta"),
-                    JSONObject.fromObject(modelinfo).getDouble("sigma"))
+                    JSONObject.fromObject(modelinfo).getDouble("sigma")
+                )
                 .toMap
+            tool.log("相似度与个体数量关系计算完成，正在保存...", "1")
+            LOG.info("相似度计算完成，写入数据库中")
 
             //callBackSimilar
-            // todo 数据量较大，需要分批写入
-            val similarity_mapArray = new JSONArray()
+            var similarity_mapArray = new JSONArray()
             similar.keys.foreach { i =>
                 val json_obj = new JSONObject()
                 json_obj.put("similar", i.toString)
                 json_obj.put("num", similar(i).toString)
                 similarity_mapArray.add(json_obj)
+                if (similarity_mapArray.size() % 5000 == 0) {
+                    tool.postArrayToURL(modelid, prop.getProperty("similar"), similarity_mapArray)
+                    similarity_mapArray = new JSONArray()
+                    Thread.sleep(1000)
+                }
             }
-            tool.log("相似度与个体数量关系计算完成，正在保存...", "1")
-            LOG.info("相似度计算完成，写入数据库中")
-            tool.postArrayToURL(modelid,
-                prop.getProperty("similar"),
-                similarity_mapArray)
+            if (similarity_mapArray.size() > 0) {
+                tool.postArrayToURL(modelid, prop.getProperty("similar"), similarity_mapArray)
+            }
             tool.log("模型训练完成", "2")
             LOG.info("模型训练完成\n\n\n\n")
         } catch {

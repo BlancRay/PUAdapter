@@ -27,15 +27,18 @@ protected object fit {
             val hold_out_ratio = JSONObject.fromObject(algo_args).getString("holdOutRatio").toDouble
             val splits = POS.randomSplit(Array(hold_out_ratio, 1.0 - hold_out_ratio))
             val (p_test, p_train) = (splits(0), splits(1))
+            LOG.info(s"train instances ${p_train.count()},test instances ${p_test.count()}")
             // Train a RandomForest model.
             val trainData = p_train.union(UNL)
             if (JSONObject.fromObject(algo_args).getInt("categoricalFeaturesInfo") == 1) {
+                LOG.info("categoricalFeaturesInfo=1")
                 model_hold_out = RandomForest.trainClassifier(trainData, JSONObject.fromObject(algo_args).getInt("numClasses"), Map[Int, Int](), JSONObject.fromObject(algo_args).getInt("numTrees"), JSONObject.fromObject(algo_args).getString("featureSubsetStrategy"), JSONObject.fromObject(algo_args).getString("impurity"), JSONObject.fromObject(algo_args).getInt("maxDepth"), JSONObject.fromObject(algo_args).getInt("maxBins"))
                 val hold_out_predictions = tool.predict(p_test, model_hold_out)
                 c = hold_out_predictions.sum() / hold_out_predictions.count()
             }
             else {
                 val map = JSON.parseFull(JSONObject.fromObject(JSONObject.fromObject(algo_args).get("categoricalFeaturesInfo")).toString()).get.asInstanceOf[Map[Int, Int]]
+                LOG.info(s"categoricalFeaturesInfo ${map.toList}")
                 model_hold_out = RandomForest.trainClassifier(trainData, JSONObject.fromObject(algo_args).getInt("numClasses"), map, JSONObject.fromObject(algo_args).getInt("numTrees"), JSONObject.fromObject(algo_args).getString("featureSubsetStrategy"), JSONObject.fromObject(algo_args).getString("impurity"), JSONObject.fromObject(algo_args).getInt("maxDepth"), Math.max(JSONObject.fromObject(algo_args).getInt("maxBins"), map.values.max))
                 val hold_out_predictions = tool.predict(p_test, model_hold_out)
                 c = hold_out_predictions.sum() / hold_out_predictions.count()
