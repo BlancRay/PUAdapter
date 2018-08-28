@@ -134,6 +134,7 @@ object rf {
             case e: Exception =>
                 tool.log("模型训练错误", "-1")
                 LOG.error("模型训练错误\n" + e.printStackTrace())
-        }
+        } finally
+            sc.stop()
     }
 }
