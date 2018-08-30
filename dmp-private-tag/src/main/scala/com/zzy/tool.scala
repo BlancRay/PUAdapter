@@ -102,57 +102,60 @@ object tool {
             //从SOURCE表中读取的某个GID的ROWKEY
             //从SOURCE表中读取的某个GID的column标签集合
             (Bytes.toString(each.getRow), Bytes.toString(each.getValue("info".getBytes, "feature".getBytes)))
-        }.take(count.toInt)
-        val gid = new Array[String](count.toInt)
-        val lp = new Array[LabeledPoint](count.toInt)
-        var i = 0
+        }
+        //        val gid = new Array[String](count.toInt)
+        //        val lp = new Array[LabeledPoint](count.toInt)
+        //        var i = 0
 
         LOG.info("特征数量:" + attributeInfo.size.toString)
         val factors = Array.range(0, attributeInfo.size)
-        res.foreach {
-            case (rowkey, hbaseresult) =>
-                gid(i) = rowkey
-                val GID_TAG_split = new mutable.HashMap[Int, Double]()
-                if (hbaseresult != "") {
-                    val GID_TAG_SET = hbaseresult.split(";")
-                    GID_TAG_SET.foreach { each =>
-                        val tag_split = each.split(":")
-                        if (attributeInfo(traitIDIndex(tag_split(0))) == 1) //根据特征的value数量判断是否是离散型,数量为1，则为连续型
-                            GID_TAG_split.put(traitIDIndex(tag_split(0)), tag_split(1).toDouble)
-                        else
-                            GID_TAG_split.put(traitIDIndex(tag_split(0)), tag_split(1).toInt)
-                    }
+        val result = res.map { res_each =>
+            val gid = res_each._1
+            val hbaseresult = res_each._2
+            val GID_TAG_split = new mutable.HashMap[Int, Double]()
+            if (hbaseresult != "") {
+                val GID_TAG_SET = hbaseresult.split(";")
+                GID_TAG_SET.foreach { each =>
+                    val tag_split = each.split(":")
+                    if (attributeInfo(traitIDIndex(tag_split(0))) == 1) //根据特征的value数量判断是否是离散型,数量为1，则为连续型
+                        GID_TAG_split.put(traitIDIndex(tag_split(0)), tag_split(1).toDouble)
+                    else
+                        GID_TAG_split.put(traitIDIndex(tag_split(0)), tag_split(1).toInt)
+                }
+            } else {
+                LOG.error(gid + " 的特征数为0!")
+                log(gid + " 的特征数为0!", "-1")
+                throw new Exception(gid + " 的特征数为0!")
+            }
+
+            //      println(rowkey,hbaseresult)
+            //从MODEL_TAG_INDEX表中读取modelID的所有标签 getTagIndexInfoByModelId
+
+            //
+            val feature = new Array[Double](factors.length)
+            factors.foreach { each =>
+                if (GID_TAG_split.contains(each)) {
+                    feature(each) = GID_TAG_split(each)
                 } else {
-                    LOG.error(rowkey + " 的特征数为0!")
-                    log(rowkey + " 的特征数为0!", "-1")
-                    throw new Exception(rowkey + " 的特征数为0!")
+                    if (attributeInfo(each) == 1) //连续变量长度为1
+                        feature(each) = -1.0
+                    else //离散变量长度至少为2(包含一个"NULL")
+                        feature(each) = 0.0
                 }
+            }
 
-                //      println(rowkey,hbaseresult)
-                //从MODEL_TAG_INDEX表中读取modelID的所有标签 getTagIndexInfoByModelId
-
-                //
-                val feature = new Array[Double](factors.length)
-                factors.foreach { each =>
-                    if (GID_TAG_split.contains(each)) {
-                        feature(each) = GID_TAG_split(each)
-                    } else {
-                        if (attributeInfo(each) == 1) //连续变量长度为1
-                            feature(each) = -1.0
-                        else //离散变量长度至少为2(包含一个"NULL")
-                            feature(each) = 0.0
-                    }
-                }
-
-                val dv: Vector = Vectors.dense(feature)
-                if (Type.contains("P"))
-                    lp.update(i, LabeledPoint(1, dv))
-                else
-                    lp.update(i, LabeledPoint(0, dv))
-                i += 1
+            val dv: Vector = Vectors.dense(feature)
+            var lp: LabeledPoint = null
+            if (Type.contains("P")) {
+                lp = LabeledPoint(1, dv)
+            }
+            else {
+                lp = LabeledPoint(0, dv)
+            }
+            (gid, lp)
         }
         conn.close()
-        (sc.makeRDD(gid), sc.makeRDD(lp))
+        (result.map(_._1), result.map(_._2))
     }
 
     /**

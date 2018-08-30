@@ -60,7 +60,7 @@ object tool {
         scan.setFilter(prefixFilter)
         val proto = ProtobufUtil.toScan(scan)
         HBconf.set(TableInputFormat.SCAN, Base64.encodeBytes(proto.toByteArray))
-        //    HBconf.set(TableInputFormat.SCAN, modelid)
+        //        HBconf.set(TableInputFormat.SCAN, modelid)
 
         val conn = ConnectionFactory.createConnection(HBconf)
         //根据Type读取对应数据
@@ -95,7 +95,12 @@ object tool {
                         is_time = true
                     }
                 }
+            } else {
+                LOG.error(gid + " 的特征数为0!")
+                log(gid + " 的特征数为0!", "-1")
+                throw new Exception(gid + " 的特征数为0!")
             }
+
             val feature = new Array[Double](factors.length)
             factors.foreach { f_each =>
                 if (GID_TAG_split.contains(f_each + 1)) {
@@ -104,6 +109,7 @@ object tool {
                     feature(f_each) = 0
                 }
             }
+
             val dv: Vector = Vectors.dense(feature)
             var lp: LabeledPoint = null
             if (Type.contains("P")) {

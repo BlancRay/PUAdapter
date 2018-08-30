@@ -5,12 +5,17 @@ import java.io.{File, FileOutputStream, PrintWriter}
 import org.apache.spark.mllib.linalg.{Vector, Vectors}
 import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.mllib.tree.RandomForest
+import org.apache.spark.mllib.tree.configuration.Algo.Classification
+import org.apache.spark.mllib.tree.configuration.QuantileStrategy.Sort
+import org.apache.spark.mllib.tree.configuration.Strategy
+import org.apache.spark.mllib.tree.impurity.Gini
 import org.apache.spark.mllib.tree.model.RandomForestModel
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
 
 import scala.collection.mutable
 import scala.io.Source
+import scala.util.Random
 
 object unit_train {
     val pwd = "E:\\xulei\\zhiziyun\\model\\test\\test1\\"
@@ -50,7 +55,9 @@ object unit_train {
         val newRddU = sc.makeRDD(newU)
         var finalModel: RandomForestModel = null
         println("rebuilding")
-        finalModel = RandomForest.trainClassifier(p.union(newRddU).union(newRddU), 2, categoryInfo.toMap, 50, "auto", "gini", 25, 200)
+        val strategy = new Strategy(algo = Classification, impurity = Gini, maxDepth = 25, numClasses = 2, maxBins = 200, quantileCalculationStrategy = Sort, categoricalFeaturesInfo = Map[Int, Int](), maxMemoryInMB = 512)
+        finalModel = RandomForest.trainClassifier(p.union(newRddU).union(newRddU), strategy, 50, "auto", Random.nextInt())
+        sys.exit(0)
         dirDel(new File(pwd + "finalmodel"))
         finalModel.save(sc, pwd + "finalmodel")
         println("test end")

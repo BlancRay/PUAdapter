@@ -4,8 +4,14 @@ import com.zzy.tagModel.LOG
 import net.sf.json.JSONObject
 import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.mllib.tree.RandomForest
+import org.apache.spark.mllib.tree.configuration.Algo.Classification
+import org.apache.spark.mllib.tree.configuration.QuantileStrategy.Sort
+import org.apache.spark.mllib.tree.configuration.Strategy
+import org.apache.spark.mllib.tree.impurity.{Entropy, Gini, Impurity, Variance}
 import org.apache.spark.mllib.tree.model.RandomForestModel
 import org.apache.spark.rdd.RDD
+
+import scala.util.Random
 
 protected object fit {
     /**
@@ -18,17 +24,18 @@ protected object fit {
     def fit(POS: RDD[LabeledPoint], UNL: RDD[LabeledPoint], algo_args: String, categoryInfo: Map[Int, Int]): (Double, RandomForestModel) = {
         LOG.info("构建模型中")
         tool.log("构建模型中...", "1")
+        val (hold_out_ratio, numClasses, numTrees, featureSubsetStrategy, impurity, maxDepth, maxBins) = read_args(algo_args, categoryInfo)
         var c = Double.NaN
         var model_hold_out: RandomForestModel = null
+        val splits = POS.randomSplit(Array(hold_out_ratio, 1.0 - hold_out_ratio))
+        val (p_test, p_train) = (splits(0), splits(1))
+        val trainData = p_train.union(UNL)
+        LOG.info(s"train instances ${p_train.count()},test instances ${p_test.count()}")
+
+        //        Train a RandomForest model.
+        val strategy = new Strategy(Classification, impurity, maxDepth, numClasses, maxBins, Sort, categoryInfo, maxMemoryInMB = 512)
         do {
-            val hold_out_ratio = JSONObject.fromObject(algo_args).getString("holdOutRatio").toDouble
-            val splits = POS.randomSplit(Array(hold_out_ratio, 1.0 - hold_out_ratio))
-            val (p_test, p_train) = (splits(0), splits(1))
-            // Train a RandomForest model.
-            val trainData = p_train.union(UNL)
-            //      val categoryInfo = tool.getCategoryInfo(modelid)
-            //      model_hold_out = RandomForest.trainClassifier(trainData, JSONObject.fromObject(algo_args).getInt("numClasses"), categoryInfo, JSONObject.fromObject(algo_args).getInt("numTrees"), JSONObject.fromObject(algo_args).getString("featureSubsetStrategy"), JSONObject.fromObject(algo_args).getString("impurity"), JSONObject.fromObject(algo_args).getInt("maxDepth"), Math.max(JSONObject.fromObject(algo_args).getInt("maxBins"),categoryInfo.values.max))
-            model_hold_out = RandomForest.trainClassifier(trainData, JSONObject.fromObject(algo_args).getInt("numClasses"), categoryInfo, 10, JSONObject.fromObject(algo_args).getString("featureSubsetStrategy"), JSONObject.fromObject(algo_args).getString("impurity"), 5, Math.max(JSONObject.fromObject(algo_args).getInt("maxBins"), categoryInfo.values.max))
+            model_hold_out = RandomForest.trainClassifier(trainData, strategy, numTrees, featureSubsetStrategy, Random.nextInt())
             val hold_out_predictions = tool.predict(p_test, model_hold_out)
             c = hold_out_predictions.sum() / hold_out_predictions.count()
             LOG.info("c is " + c)
@@ -38,5 +45,23 @@ protected object fit {
         } while (c.isNaN)
         tool.log("模型构建完成", "1")
         (c, model_hold_out)
+    }
+
+    def fromString(name: String): Impurity = name match {
+        case "gini" => Gini
+        case "entropy" => Entropy
+        case "variance" => Variance
+        case _ => throw new IllegalArgumentException(s"Did not recognize Impurity name: $name")
+    }
+
+    def read_args(args: String, categoryInfo: Map[Int, Int]): (Double, Int, Int, String, Impurity, Int, Int) = {
+        val hold_out_ratio = JSONObject.fromObject(args).getString("holdOutRatio").toDouble
+        val numClasses: Int = JSONObject.fromObject(args).getInt("numClasses")
+        val numTrees: Int = JSONObject.fromObject(args).getInt("numTrees")
+        val featureSubsetStrategy: String = JSONObject.fromObject(args).getString("featureSubsetStrategy")
+        val impurity = fromString(JSONObject.fromObject(args).getString("impurity"))
+        val maxDepth: Int = JSONObject.fromObject(args).getInt("maxDepth")
+        val maxBins: Int = Math.max(JSONObject.fromObject(args).getInt("maxBins"), categoryInfo.values.max)
+        (hold_out_ratio, numClasses, numTrees, featureSubsetStrategy, impurity, maxDepth, maxBins)
     }
 }
