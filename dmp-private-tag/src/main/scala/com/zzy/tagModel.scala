@@ -122,6 +122,7 @@ object tagModel {
                 LOG.error("模型训练错误\n" + e.toString)
                 LOG.error(e.getMessage)
                 LOG.error(e.getStackTrace.toString)
-        }
+        } finally
+            sc.stop()
     }
 }
