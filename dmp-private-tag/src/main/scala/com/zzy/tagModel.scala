@@ -4,7 +4,7 @@ import java.io.FileInputStream
 import java.util
 import java.util.Properties
 
-import net.sf.json.{JSONArray, JSONObject}
+import com.google.gson.{Gson, JsonArray, JsonObject}
 import org.apache.spark.{SparkConf, SparkContext}
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -12,6 +12,7 @@ object tagModel {
     val prop = new Properties()
     val modelIdMap = new util.HashMap[String, String]()
     val LOG: Logger = LoggerFactory.getLogger("dmp-private-tag")
+    val gson = new Gson()
 
     /**
       * 根据参数model_id读取数据、训练模型、输出特征重要性、保存训练好的模型及参数
@@ -37,17 +38,17 @@ object tagModel {
             prop.load(new FileInputStream(args(1)))
             tool.log("调用算法训练模型开始", "1")
             tool.log("读取模型参数", "1")
-            val modelinfo = JSONObject.fromObject(tool.postDataToURL(prop.getProperty("model_info"), modelIdMap)).get("outBean").toString
+            val modelinfo = gson.fromJson(tool.postDataToURL(prop.getProperty("model_info"), modelIdMap), classOf[JsonObject]).get("outBean").getAsJsonObject
             LOG.info("模型信息:" + modelinfo)
-            val algo_args = JSONObject.fromObject(modelinfo).get("algorithmArgs").toString
-            val model_args = JSONObject.fromObject(modelinfo).get("modelArgs").toString
+            val algo_args = modelinfo.get("algorithmArgs").getAsJsonObject
+            val model_args = modelinfo.get("modelArgs").getAsJsonObject
 
             //      val categoryInfo = tool.getCategoryInfo(modelid)
-            val (attributeInfo, nominalInfo, attributeIndex,traitIDIndex) = tool.getAttributeInfo(modelid)
+            val (attributeInfo, nominalInfo, attributeIndex, traitIDIndex) = tool.getAttributeInfo(modelid)
             //read p u data
             tool.log("读取种子人群", "1")
 
-            val (_, p) = tool.read_convert(modelid, "P", sc, attributeInfo,traitIDIndex)
+            val (_, p) = tool.read_convert(modelid, "P", sc, attributeInfo, traitIDIndex)
             LOG.info("P_SOURCE数量:" + p.count().toString)
 
             tool.log("读取训练数据", "1")
@@ -72,14 +73,14 @@ object tagModel {
             tool.log("模型影响因子计算完成，正在保存...", "1")
 
             //setInfluenceFacByModelId
-            val importance_mapArray = new JSONArray()
+            val importance_mapArray = new JsonArray()
             feature_importance.keys.foreach { i => //index from 1
-                val json_obj = new JSONObject()
-                json_obj.put("traitId", attributeIndex(i - 1))
+                val json_obj = new JsonObject()
+                json_obj.addProperty("traitId", attributeIndex(i - 1))
                 if (feature_importance(i).isNaN)
-                    json_obj.put("strength", "0.0")
+                    json_obj.addProperty("strength", "0.0")
                 else
-                    json_obj.put("strength", feature_importance(i).toString)
+                    json_obj.addProperty("strength", feature_importance(i).toString)
                 importance_mapArray.add(json_obj)
             }
 
@@ -97,17 +98,17 @@ object tagModel {
             LOG.info(proba.toList.toString())
             tool.log("生成相似度与个体数量关系", "1")
 
-            val similar = similarity.statistics(proba, JSONObject.fromObject(model_args).getDouble("delta"), JSONObject.fromObject(modelinfo).getDouble("sigma")).toMap
+            val similar = similarity.statistics(proba, model_args.get("delta").getAsDouble, modelinfo.get("sigma").getAsDouble).toMap
 
             tool.log("相似度与个体数量关系计算完成，正在保存...", "1")
             LOG.info("相似度计算完成，写入数据库中")
 
             //callBackSimilar
-            val similarity_mapArray = new JSONArray()
+            val similarity_mapArray = new JsonArray()
             similar.keys.foreach { i =>
-                val json_obj = new JSONObject()
-                json_obj.put("similar", i.toString)
-                json_obj.put("num", similar(i).toString)
+                val json_obj = new JsonObject()
+                json_obj.addProperty("similar", i.toString)
+                json_obj.addProperty("num", similar(i).toString)
                 similarity_mapArray.add(json_obj)
             }
             // todo 数据量较大，需要分批写入

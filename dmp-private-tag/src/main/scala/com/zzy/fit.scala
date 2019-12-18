@@ -1,7 +1,7 @@
 package com.zzy
 
+import com.google.gson.JsonObject
 import com.zzy.tagModel.LOG
-import net.sf.json.JSONObject
 import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.mllib.tree.RandomForest
 import org.apache.spark.mllib.tree.configuration.Algo.Classification
@@ -21,7 +21,7 @@ protected object fit {
       * @param UNL RDD[LabeledPoint]
       * @return org.apache.spark.mllib.tree.model.RandomForestModel
       */
-    def fit(POS: RDD[LabeledPoint], UNL: RDD[LabeledPoint], algo_args: String, categoryInfo: Map[Int, Int]): (Double, RandomForestModel) = {
+    def fit(POS: RDD[LabeledPoint], UNL: RDD[LabeledPoint], algo_args: JsonObject, categoryInfo: Map[Int, Int]): (Double, RandomForestModel) = {
         LOG.info("构建模型中")
         tool.log("构建模型中...", "1")
         val (hold_out_ratio, numClasses, numTrees, featureSubsetStrategy, impurity, maxDepth, maxBins) = read_args(algo_args, categoryInfo)
@@ -54,14 +54,14 @@ protected object fit {
         case _ => throw new IllegalArgumentException(s"Did not recognize Impurity name: $name")
     }
 
-    def read_args(args: String, categoryInfo: Map[Int, Int]): (Double, Int, Int, String, Impurity, Int, Int) = {
-        val hold_out_ratio = JSONObject.fromObject(args).getString("holdOutRatio").toDouble
-        val numClasses: Int = JSONObject.fromObject(args).getInt("numClasses")
-        val numTrees: Int = JSONObject.fromObject(args).getInt("numTrees")
-        val featureSubsetStrategy: String = JSONObject.fromObject(args).getString("featureSubsetStrategy")
-        val impurity = fromString(JSONObject.fromObject(args).getString("impurity"))
-        val maxDepth: Int = JSONObject.fromObject(args).getInt("maxDepth")
-        val maxBins: Int = Math.max(JSONObject.fromObject(args).getInt("maxBins"), categoryInfo.values.max)
+    def read_args(args: JsonObject, categoryInfo: Map[Int, Int]): (Double, Int, Int, String, Impurity, Int, Int) = {
+        val hold_out_ratio = args.get("holdOutRatio").getAsDouble
+        val numClasses: Int = args.get("numClasses").getAsInt
+        val numTrees: Int = args.get("numTrees").getAsInt
+        val featureSubsetStrategy: String = args.get("featureSubsetStrategy").getAsString
+        val impurity = fromString(args.get("impurity").getAsString)
+        val maxDepth: Int = args.get("maxDepth").getAsInt
+        val maxBins: Int = Math.max(args.get("maxBins").getAsInt, categoryInfo.values.max)
         (hold_out_ratio, numClasses, numTrees, featureSubsetStrategy, impurity, maxDepth, maxBins)
     }
 }
