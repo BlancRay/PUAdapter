@@ -46,7 +46,8 @@ object tool {
         val attributeInfo = mutable.Map[Int, Int]() //attribute,#values
         val traitIDIndex = mutable.Map[String, Int]() //traitID,index
         var i = 0
-        featureInfoJson.forEach { each =>
+        while (featureInfoJson.iterator().hasNext) {
+            val each = featureInfoJson.iterator().next()
             val trait_id = each.getAsJsonObject.get("traitId").toString
             if (!traitIDIndex.contains(trait_id)) {
                 traitIDIndex.put(trait_id, i)

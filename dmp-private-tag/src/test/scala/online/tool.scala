@@ -4,8 +4,8 @@ import java.text.SimpleDateFormat
 import java.util
 import java.util.Date
 
-import com.zzy.tagModel.{LOG, modelIdMap, prop}
-import net.sf.json.{JSONArray, JSONObject}
+import com.google.gson.{JsonArray, JsonObject}
+import com.zzy.tagModel.{LOG, gson, modelIdMap, prop}
 import org.apache.hadoop.hbase.HBaseConfiguration
 import org.apache.hadoop.hbase.client.{ConnectionFactory, Scan}
 import org.apache.hadoop.hbase.filter.PrefixFilter
@@ -32,11 +32,11 @@ object tool {
   }
 
   def getAttributeInfo(modelid: String): (mutable.Map[Int, Int], mutable.Map[Int, Int]) = {
-    val featureInfoJson = JSONObject.fromObject(JSONObject.fromObject(tool.postDataToURL(prop.getProperty("tagindex"), modelIdMap)).get("result"))
+    val featureInfoJson = gson.fromJson(tool.postDataToURL(prop.getProperty("tagindex"), modelIdMap), classOf[JsonObject]).get("result").getAsJsonObject
     val nominalInfo = mutable.Map[Int, Int]()
     val attributeInfo = mutable.Map[Int, Int]()
     for (i <- 0 until featureInfoJson.size()) {
-      val a = featureInfoJson.getInt(i.toString)
+      val a = featureInfoJson.get(i.toString).getAsInt
       attributeInfo.put(i, a)
       if (a != 1)
         nominalInfo.put(i, a)
@@ -133,7 +133,7 @@ object tool {
     * @param estC    Double 参数c
     * @param modelid String 模型id
     */
-  def save(model: RandomForestModel, estC: Double, model_info: String, modelid: String, sc: SparkContext) {
+  def save(model: RandomForestModel, estC: Double, model_info: JsonObject, modelid: String, sc: SparkContext) {
     log(modelid, "正在保存模型", "1", prop.getProperty("log"))
     if (prop.getProperty("hdfs_dir") == "") {
       log(modelid, "模型保存地址为空", "-1", prop.getProperty("log"))
@@ -141,8 +141,8 @@ object tool {
       //      sys.exit(-1)
     }
     LOG.info("保存模型")
-    println(JSONObject.fromObject(model_info).get("model_dir"))
-    model.save(sc, prop.getProperty("hdfs_dir") + JSONObject.fromObject(model_info).get("model_dir") + "/" + modelid)
+    println(model_info.get("model_dir").getAsString)
+    model.save(sc, prop.getProperty("hdfs_dir") + model_info.get("model_dir").getAsString + "/" + modelid)
     //模型保存在hdfs上
     LOG.info("保存成功")
 
@@ -169,7 +169,7 @@ object tool {
 
     val log_input_map = new util.HashMap[String, String]()
     log_input_map.put("key4token", "dmp")
-    log_input_map.put("input", JSONObject.fromObject(log_MAP).toString)
+    log_input_map.put("input", gson.toJson(log_MAP))
     postDataToURL(url, log_input_map)
   }
 
@@ -178,9 +178,9 @@ object tool {
     conn.data(params).post().body().text()
   }
 
-  def postArrayToURL(modelid: String, url: String, params: JSONArray): String = {
+  def postArrayToURL(modelid: String, url: String, params: JsonArray): String = {
     val input_map: util.HashMap[String, String] = modelIdMap
-    input_map.put("input", JSONArray.fromObject(params).toString)
+    input_map.put("input", gson.toJson(params))
     //    println(input_map)
     postDataToURL(url, input_map)
   }

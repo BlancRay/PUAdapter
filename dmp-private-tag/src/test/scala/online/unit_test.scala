@@ -3,7 +3,7 @@ package online
 import java.io.{FileOutputStream, PrintWriter}
 import java.util.Properties
 
-import net.sf.json.JSONObject
+import com.google.gson.{Gson, JsonObject}
 import org.apache.spark.mllib.tree.model.RandomForestModel
 import org.apache.spark.{SparkConf, SparkContext}
 
@@ -12,6 +12,7 @@ import scala.io.Source
 
 object unit_test {
   val prop = new Properties()
+  val gson = new Gson()
   val mode = "test" // train or test
   def main(args: Array[String]): Unit = {
     println("开始模型测试")
@@ -25,11 +26,11 @@ object unit_test {
     val estC = Source.fromFile(dataReady.dataGenerate.dir + "estC").getLines().next().toDouble
     println(estC)
     val json = "{" + Source.fromFile(online.dataReady.dataGenerate.dir + "AttrbuiteJSON.txt").getLines().next() + "}"
-    val featureInfoJson = JSONObject.fromObject(json)
+    val featureInfoJson = gson.fromJson(json, classOf[JsonObject])
     val attributeInfo = mutable.Map[Int, Int]()
     val nominalInfo = mutable.Map[Int, Int]()
     for (i <- 0 until featureInfoJson.size()) {
-      val a = featureInfoJson.getInt(i.toString)
+      val a = featureInfoJson.get(i.toString).getAsInt
       attributeInfo.put(i, a)
       if (a != 1)
         nominalInfo.put(i, a)
