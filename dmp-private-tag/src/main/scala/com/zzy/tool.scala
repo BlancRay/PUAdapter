@@ -20,6 +20,7 @@ import org.apache.spark.mllib.tree.model.RandomForestModel
 import org.apache.spark.rdd.RDD
 import org.jsoup.Jsoup
 
+import scala.collection.JavaConversions._
 import scala.collection.mutable
 
 object tool {
@@ -46,8 +47,7 @@ object tool {
         val attributeInfo = mutable.Map[Int, Int]() //attribute,#values
         val traitIDIndex = mutable.Map[String, Int]() //traitID,index
         var i = 0
-        while (featureInfoJson.iterator().hasNext) {
-            val each = featureInfoJson.iterator().next()
+        featureInfoJson.foreach { each =>
             val trait_id = each.getAsJsonObject.get("traitId").toString
             if (!traitIDIndex.contains(trait_id)) {
                 traitIDIndex.put(trait_id, i)
