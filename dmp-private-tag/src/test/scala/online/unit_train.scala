@@ -3,7 +3,7 @@ package online
 import java.io.{File, FileOutputStream, PrintWriter}
 import java.util.Properties
 
-import com.google.gson.{Gson, JsonObject}
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.hadoop.hbase.HBaseConfiguration
 import org.apache.hadoop.hbase.client.{ConnectionFactory, Scan}
 import org.apache.hadoop.hbase.filter.PrefixFilter
@@ -23,18 +23,20 @@ import scala.io.Source
 
 object unit_train {
     val prop = new Properties()
+    val mapper = new ObjectMapper()
 
     def main(args: Array[String]): Unit = {
         System.setProperty("hadoop.home.dir", "E:\\xulei\\hadoop2.6.0")
         val path = this.getClass.getResourceAsStream("../model.properties")
         prop.load(path)
         val sc = new SparkContext(new SparkConf().setAppName("RandomForestClassificationTrain").setMaster("local[4]"))
-        val json = "{" + Source.fromFile(online.dataReady.dataGenerate.dir + "AttrbuiteJSON.txt").getLines().next() + "}"
-        val featureInfoJson = new Gson().fromJson(json, classOf[JsonObject])
+        val AttrbuiteJSONFile = Source.fromFile(online.dataReady.dataGenerate.dir + "AttrbuiteJSON.txt")
+        val featureInfoJson = mapper.readTree("{" + AttrbuiteJSONFile.getLines.mkString + "}")
+        AttrbuiteJSONFile.close()
         val nominalInfo = mutable.Map[Int, Int]()
         val attributeInfo = mutable.Map[Int, Int]()
         for (i <- 0 until featureInfoJson.size()) {
-            val a = featureInfoJson.get(i.toString).getAsInt
+            val a = featureInfoJson.get(i.toString).asInt
             attributeInfo.put(i, a)
             if (a != 1)
                 nominalInfo.put(i, a)

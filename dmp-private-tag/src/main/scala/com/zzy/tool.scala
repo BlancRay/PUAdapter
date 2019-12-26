@@ -4,8 +4,8 @@ import java.text.SimpleDateFormat
 import java.util
 import java.util.Date
 
-import com.google.gson.{JsonArray, JsonObject}
-import com.zzy.tagModel.{LOG, gson, modelIdMap, prop}
+import com.fasterxml.jackson.databind.JsonNode
+import com.zzy.tagModel.{LOG, mapper, modelIdMap, prop}
 import org.apache.hadoop.hbase.HBaseConfiguration
 import org.apache.hadoop.hbase.client.{ConnectionFactory, Scan}
 import org.apache.hadoop.hbase.filter.PrefixFilter
@@ -42,23 +42,23 @@ object tool {
     def getAttributeInfo(modelid: String): (mutable.Map[Int, Int], mutable.Map[Int, Int], mutable.Map[Int, String], mutable.Map[String, Int]) = {
         val result = tool.postDataToURL(prop.getProperty("traitindex"), modelIdMap)
         LOG.info(result)
-        val featureInfoJson = gson.fromJson(gson.fromJson(result, classOf[JsonObject]).get("result"), classOf[JsonArray])
+        val featureInfoJson = mapper.readTree(result).get("result")
         val nominalInfo = mutable.Map[Int, Int]() //nominal attribute,#values, for model fit use
         val attributeInfo = mutable.Map[Int, Int]() //attribute,#values
         val traitIDIndex = mutable.Map[String, Int]() //traitID,index
         var i = 0
         featureInfoJson.foreach { each =>
-            val trait_id = each.getAsJsonObject.get("traitId").toString
+            val trait_id = each.get("traitId").asText
             if (!traitIDIndex.contains(trait_id)) {
                 traitIDIndex.put(trait_id, i)
                 attributeInfo.put(i, 1)
-                if (each.getAsJsonObject.get("flag").toString == "1") { //离散特征 flag=1
+                if (each.get("flag").asText == "1") { //离散特征 flag=1
                     nominalInfo.put(i, 1)
                 }
                 i = i + 1
             } else {
                 attributeInfo.update(traitIDIndex(trait_id), attributeInfo(traitIDIndex(trait_id)) + 1)
-                if (each.getAsJsonObject.get("flag").toString == "1") {
+                if (each.get("flag").asText == "1") {
                     nominalInfo.update(traitIDIndex(trait_id), nominalInfo(traitIDIndex(trait_id)) + 1)
                 }
             }
@@ -166,7 +166,7 @@ object tool {
       * @param estC    Double 参数c
       * @param modelid String 模型id
       */
-    def save(model: RandomForestModel, estC: Double, model_info: JsonObject, modelid: String, sc: SparkContext) {
+    def save(model: RandomForestModel, estC: Double, model_info: JsonNode, modelid: String, sc: SparkContext) {
         LOG.info("保存模型")
         log("正在保存模型", "1")
 
@@ -176,7 +176,7 @@ object tool {
             //      sys.exit(-1)
         }
 
-        LOG.info("模型保存在：" + model_info.get("modelDir").getAsString)
+        LOG.info("模型保存在：" + model_info.get("modelDir").asText)
 
         model.save(sc, prop.getProperty("hdfs_dir") + model_info.get("modelDir") + "/" + modelid)
 
@@ -207,7 +207,7 @@ object tool {
 
         val log_input_map = new util.HashMap[String, String]()
         log_input_map.put("key4token", "dmp")
-        log_input_map.put("input", gson.toJson(log_MAP))
+        log_input_map.put("input", mapper.writeValueAsString(log_MAP))
         postDataToURL(prop.getProperty("log"), log_input_map)
     }
 
@@ -216,9 +216,9 @@ object tool {
         conn.data(params).post().body().text()
     }
 
-    def postArrayToURL(url: String, params: JsonArray): String = {
+    def postArrayToURL(url: String, params: JsonNode): String = {
         val input_map: util.HashMap[String, String] = modelIdMap
-        input_map.put("input", gson.toJson(params))
+        input_map.put("input", mapper.writeValueAsString(params))
         //            println(input_map)
         postDataToURL(url, input_map)
     }

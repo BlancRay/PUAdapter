@@ -1,6 +1,6 @@
 package offline
 
-import com.google.gson.{Gson, JsonObject}
+import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
 import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.mllib.tree.RandomForest
 import org.apache.spark.mllib.tree.model.RandomForestModel
@@ -15,24 +15,24 @@ protected object fit {
       * @param UNL     RDD[LabeledPoint]
       * @return (Double,org.apache.spark.mllib.tree.model.RandomForestModel) tmpParam and Model
       */
-    def fit(modelid: String, POS: RDD[LabeledPoint], UNL: RDD[LabeledPoint], algo_args: JsonObject): (Double, RandomForestModel) = {
+    def fit(modelid: String, POS: RDD[LabeledPoint], UNL: RDD[LabeledPoint], algo_args: JsonNode): (Double, RandomForestModel) = {
         var c = Double.NaN
         var model_hold_out: RandomForestModel = null
-        val gson = new Gson()
+        val mapper = new ObjectMapper()
         do {
-            val hold_out_ratio = algo_args.get("holdOutRatio").getAsDouble
+            val hold_out_ratio = algo_args.get("holdOutRatio").asDouble
             val splits = POS.randomSplit(Array(hold_out_ratio, 1.0 - hold_out_ratio))
             val (p_test, p_train) = (splits(0), splits(1))
             // Train a RandomForest model.
             val trainData = p_train.union(UNL)
-            if (algo_args.get("categoricalFeaturesInfo").getAsInt == 1) {
-                model_hold_out = RandomForest.trainClassifier(trainData, algo_args.get("numClasses").getAsInt, Map[Int, Int](), algo_args.get("numTrees").getAsInt, algo_args.get("featureSubsetStrategy").getAsString, algo_args.get("impurity").getAsString, algo_args.get("maxDepth").getAsInt, algo_args.get("maxBins").getAsInt)
+            if (algo_args.get("categoricalFeaturesInfo").asInt == 1) {
+                model_hold_out = RandomForest.trainClassifier(trainData, algo_args.get("numClasses").asInt, Map[Int, Int](), algo_args.get("numTrees").asInt, algo_args.get("featureSubsetStrategy").asText, algo_args.get("impurity").asText, algo_args.get("maxDepth").asInt, algo_args.get("maxBins").asInt)
                 val hold_out_predictions = tool.predict(p_test, model_hold_out)
                 c = hold_out_predictions.sum() / hold_out_predictions.count()
             }
             else {
-                val map = gson.fromJson(algo_args.get("categoricalFeaturesInfo"), classOf[Map[Int, Int]])
-                model_hold_out = RandomForest.trainClassifier(trainData, algo_args.get("numClasses").getAsInt, map, algo_args.get("numTrees").getAsInt, algo_args.get("featureSubsetStrategy").getAsString, algo_args.get("impurity").getAsString, algo_args.get("maxDepth").getAsInt, algo_args.get("maxBins").getAsInt)
+                val map = mapper.convertValue(algo_args.get("categoricalFeaturesInfo"), classOf[Map[Int, Int]])
+                model_hold_out = RandomForest.trainClassifier(trainData, algo_args.get("numClasses").asInt, map, algo_args.get("numTrees").asInt, algo_args.get("featureSubsetStrategy").asText, algo_args.get("impurity").asText, algo_args.get("maxDepth").asInt, algo_args.get("maxBins").asInt)
                 val hold_out_predictions = tool.predict(p_test, model_hold_out)
                 c = hold_out_predictions.sum() / hold_out_predictions.count()
             }

@@ -3,7 +3,7 @@ package online
 import java.util
 import java.util.Properties
 
-import com.google.gson.{Gson, JsonArray, JsonObject}
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.spark.{SparkConf, SparkContext}
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -11,7 +11,7 @@ object tagModel {
   val prop = new Properties()
   val modelIdMap = new util.HashMap[String, String]()
   val LOG: Logger = LoggerFactory.getLogger("rf")
-  val gson = new Gson()
+  val mapper = new ObjectMapper()
 
   /**
     * 根据参数model_id读取数据、训练模型、输出特征重要性、保存训练好的模型及参数
@@ -36,10 +36,10 @@ object tagModel {
     modelIdMap.put("modelId", modelid)
     try {
       tool.log(modelid, "读取模型参数", "1", prop.getProperty("log"))
-      val modelinfo = gson.fromJson(tool.postDataToURL(prop.getProperty("model_info"), modelIdMap), classOf[JsonObject]).get("outBean").getAsJsonObject
+      val modelinfo = mapper.readTree(tool.postDataToURL(prop.getProperty("model_info"), modelIdMap)).get("outBean")
       LOG.info("模型信息:" + modelinfo)
-      val algo_args = modelinfo.get("algorithm_args").getAsJsonObject
-      val model_args = modelinfo.get("model_args").getAsJsonObject
+      val algo_args = modelinfo.get("algorithm_args")
+      val model_args = modelinfo.get("model_args")
 
       val (attributeInfo, nominalInfo) = tool.getAttributeInfo(modelid)
       //read p u data
@@ -66,11 +66,11 @@ object tagModel {
       val feature_importance = importance.featureImportances(model.trees, attributeInfo.size)
 
       //setInfluenceFacByModelId
-      val importance_mapArray = new JsonArray()
+      val importance_mapArray = mapper.createArrayNode()
       feature_importance.keys.foreach { i =>
-        val json_obj = new JsonObject()
-        json_obj.addProperty("tagIndex", i.toString)
-        json_obj.addProperty("instensity", feature_importance(i).toString)
+        val json_obj = mapper.createObjectNode()
+        json_obj.put("tagIndex", i.toString)
+        json_obj.put("instensity", feature_importance(i).toString)
         importance_mapArray.add(json_obj)
       }
 
@@ -81,15 +81,15 @@ object tagModel {
       LOG.info("开始计算相似度")
       val proba = model_test.evaluate(model, estC, modelid, sc, attributeInfo).collect() //读取N_SOURCE时需要全部特征信息
       tool.log(modelid, "生成相似度与个体数量关系", "1", prop.getProperty("log"))
-      val similar = similarity.statistics(proba, model_args.get("delta").getAsDouble, modelinfo.get("sigma").getAsDouble).toMap
+      val similar = similarity.statistics(proba, model_args.get("delta").asDouble, modelinfo.get("sigma").asDouble).toMap
 
       //callBackSimilar
       // todo 数据量较大，需要分批写入
-      val similarity_mapArray = new JsonArray()
+      val similarity_mapArray = mapper.createArrayNode()
       similar.keys.foreach { i =>
-        val json_obj = new JsonObject()
-        json_obj.addProperty("similar", i.toString)
-        json_obj.addProperty("num", similar(i).toString)
+        val json_obj = mapper.createObjectNode()
+        json_obj.put("similar", i.toString)
+        json_obj.put("num", similar(i).toString)
         similarity_mapArray.add(json_obj)
       }
       LOG.info("相似度计算完成，写入数据库中")

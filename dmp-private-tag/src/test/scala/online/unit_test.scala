@@ -3,7 +3,7 @@ package online
 import java.io.{FileOutputStream, PrintWriter}
 import java.util.Properties
 
-import com.google.gson.{Gson, JsonObject}
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.spark.mllib.tree.model.RandomForestModel
 import org.apache.spark.{SparkConf, SparkContext}
 
@@ -12,7 +12,7 @@ import scala.io.Source
 
 object unit_test {
   val prop = new Properties()
-  val gson = new Gson()
+  val mapper = new ObjectMapper()
   val mode = "test" // train or test
   def main(args: Array[String]): Unit = {
     println("开始模型测试")
@@ -23,14 +23,17 @@ object unit_test {
     val sc = new SparkContext(new SparkConf().setAppName("RandomForestClassificationTest").setMaster("local[4]"))
     println("加载模型及参数")
     val model = RandomForestModel.load(sc, dataReady.dataGenerate.dir + "model")
-    val estC = Source.fromFile(dataReady.dataGenerate.dir + "estC").getLines().next().toDouble
+    val estCFile = Source.fromFile(dataReady.dataGenerate.dir + "estC")
+    val estC = estCFile.getLines.mkString.toDouble
+    estCFile.close()
     println(estC)
-    val json = "{" + Source.fromFile(online.dataReady.dataGenerate.dir + "AttrbuiteJSON.txt").getLines().next() + "}"
-    val featureInfoJson = gson.fromJson(json, classOf[JsonObject])
+    val AttrbuiteJSONFile = Source.fromFile(online.dataReady.dataGenerate.dir + "AttrbuiteJSON.txt")
+    val featureInfoJson = mapper.readTree("{" + AttrbuiteJSONFile.getLines.mkString + "}")
+    AttrbuiteJSONFile.close()
     val attributeInfo = mutable.Map[Int, Int]()
     val nominalInfo = mutable.Map[Int, Int]()
     for (i <- 0 until featureInfoJson.size()) {
-      val a = featureInfoJson.get(i.toString).getAsInt
+      val a = featureInfoJson.get(i.toString).asInt
       attributeInfo.put(i, a)
       if (a != 1)
         nominalInfo.put(i, a)

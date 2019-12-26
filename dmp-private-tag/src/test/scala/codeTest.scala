@@ -1,6 +1,6 @@
 import java.util.Properties
 
-import com.google.gson.{Gson, JsonObject}
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.hadoop.hbase.HBaseConfiguration
 import org.apache.hadoop.hbase.client.{ConnectionFactory, Scan}
 import org.apache.hadoop.hbase.filter.PrefixFilter
@@ -24,11 +24,12 @@ object codeTest {
         val path = this.getClass.getResourceAsStream("/model.properties")
         prop.load(path)
         val sc = new SparkContext(new SparkConf().setAppName("RandomForestClassificationTrain").setMaster("local[4]"))
-        val json = "{" + Source.fromFile(online.dataReady.dataGenerate.dir + "AttrbuiteJSON.txt").getLines().next() + "}"
-        val categoryInfoJson = new Gson().fromJson(json, classOf[JsonObject])
+        val AttrbuiteJSONFile = Source.fromFile(online.dataReady.dataGenerate.dir + "AttrbuiteJSON.txt")
+        val categoryInfoJson = new ObjectMapper().readTree("{" + AttrbuiteJSONFile.getLines.mkString + "}")
+        AttrbuiteJSONFile.close()
         val categoryInfo = mutable.Map[Int, Int]()
         for (i <- 0 until categoryInfoJson.size()) {
-            val a = categoryInfoJson.get(i.toString).getAsInt
+            val a = categoryInfoJson.get(i.toString).asInt()
             categoryInfo.put(i, a)
         }
         val (_, p) = read_convert("a", "P_SOURCE", sc, categoryInfo)
