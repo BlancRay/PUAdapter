@@ -20,7 +20,7 @@ notifications:
 before_install:
 
 install:
-- cd ./BidTree && mvn install -B -DskipTests=true -Dmaven.javadoc.skip=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn && cd ../dmp-private-segment && mvn install -B -DskipTests=true -Dmaven.javadoc.skip=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn && cd ../dmp-private-tag && mvn install -B -DskipTests=true -Dmaven.javadoc.skip=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn && cd ../pu4spark && mvn install -B -DskipTests=true -Dmaven.javadoc.skip=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+- cd ./dmp-private-segment && mvn install -B -DskipTests=true -Dmaven.javadoc.skip=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn && cd ../dmp-private-tag && mvn install -B -DskipTests=true -Dmaven.javadoc.skip=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn && cd ../pu4spark && mvn install -B -DskipTests=true -Dmaven.javadoc.skip=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
 
 # 6. Run mvn test.
 script:
