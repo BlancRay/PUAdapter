@@ -13,7 +13,7 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
-    - name: Run tests
+    - name: Maven package
       run: cd ./dmp-private-segment && mvn package -B -DskipTests=true -Dmaven.javadoc.skip=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
     - name: Get current time
       uses: 1466587594/current-time@v1
@@ -34,8 +34,8 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 1.8
-      - name: Run tests
-        run: cd ./dmp-private-tag && mvn install -B -DskipTests=true -Dmaven.javadoc.skip=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+      - name: Maven package
+        run: cd ./dmp-private-tag && mvn package -B -DskipTests=true -Dmaven.javadoc.skip=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
       - name: Get current time
         uses: 1466587594/current-time@v1
         id: current-time
@@ -46,7 +46,7 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: dmp-private-tag_${{ steps.current-time.outputs.formattedTime }}.jar
-          path:  dmp-private-tag/target/ dmp-private-tag-1.0.jar
+          path:  dmp-private-tag/target/dmp-private-tag-1.0.jar
   pu4spark-build:
       runs-on: ubuntu-latest
       steps:
@@ -55,8 +55,8 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 1.8
-      - name: Run tests
-        run: cd ./pu4spark && mvn install -B -DskipTests=true -Dmaven.javadoc.skip=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+      - name: Maven package
+        run: cd ./pu4spark && mvn package -B -DskipTests=true -Dmaven.javadoc.skip=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
       - name: Get current time
         uses: 1466587594/current-time@v1
         id: current-time
