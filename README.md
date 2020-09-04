@@ -1,6 +1,6 @@
 # TWO PU-learning tools on spark
 
-[![Build Status](https://www.travis-ci.org/BlancRay/PUAdapter.svg?branch=master)](https://www.travis-ci.org/BlancRay/PUAdapter)
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/BlancRay/PUAdapter/Scala%20CI?label=Release%20CI&logo=github&style=flat-square)](https://github.com/BlancRay/PUAdapter/actions?query=workflow:"Scala+CI") [![Build Status](https://www.travis-ci.org/BlancRay/PUAdapter.svg?branch=master)](https://www.travis-ci.org/BlancRay/PUAdapter)
 
 ## PUAdapter
 A set of machine learning tools and algorithms for learning from positive and unlabeled datasets.
