@@ -15,11 +15,16 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
-    - name: Setup Maven
-      uses: stCarolas/setup-maven@v1
-      with:
-        maven-version: 3.5.4
-    - name: action-maven
-      uses: comchangs/action-maven@v0.4-beta
     - name: Run tests
-      run: cd ./dmp-private-segment && mvn install -B -DskipTests=true -Dmaven.javadoc.skip=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+      run: cd ./dmp-private-segment && mvn package -B -DskipTests=true -Dmaven.javadoc.skip=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+    - name: Get current time
+      uses: 1466587594/current-time@v1
+      id: current-time
+      with:
+        format: YYYYMMDD_HHmmss
+        utcOffset: "+08:00"
+    - name : Upload artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: dmp-private-segment_${{ steps.current-time.outputs.formattedTime }}.jar
+        path: dmp-private-segment.jar
