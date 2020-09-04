@@ -25,7 +25,7 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: dmp-private-segment_${{ steps.current-time.outputs.formattedTime }}.jar
-        path: dmp-private-segment/target/dmp-private-segment-1.0.jar
+        path: dmp-private-segment/target/dmp-private-segment.jar
   dmp-private-tag-build:
       runs-on: ubuntu-latest
       steps:
@@ -46,7 +46,7 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: dmp-private-tag_${{ steps.current-time.outputs.formattedTime }}.jar
-          path:  dmp-private-tag/target/dmp-private-tag-1.0.jar
+          path:  dmp-private-tag/target/dmp-private-tag.jar
   pu4spark-build:
       runs-on: ubuntu-latest
       steps:
@@ -67,4 +67,4 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: pu4spark_${{ steps.current-time.outputs.formattedTime }}.jar
-          path: pu4spark/target/pu4spark-1.0.jar
+          path: pu4spark/target/pu4spark.jar
