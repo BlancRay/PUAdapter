@@ -32,7 +32,7 @@ object rf {
 
         //        val modelid = "34"
         //        val sc = new SparkContext(new SparkConf().setAppName("dmp-private-segment").setMaster("local[4]"))
-        //        prop.load(new FileInputStream("E:\\xulei\\IdeaProjects\\dmp\\dmp-private-segment\\model.properties"))
+        //        prop.load(new FileInputStream("E:\\IdeaProjects\\dmp\\dmp-private-segment\\model.properties"))
 
         val modelid = args(0)
         val sc = new SparkContext(new SparkConf().setAppName("dmp-private-segment"))

@@ -47,7 +47,7 @@ object tool {
     def read_convert(modelid: String, Type: String, sc: SparkContext, nbTagFeatures: Int): (RDD[String], RDD[LabeledPoint]) = {
         val HBconf = HBaseConfiguration.create()
         HBconf.set("hbase.zookeeper.property.clientPort", prop.getProperty("hbase_clientPort"))
-        HBconf.set("hbase.zookeeper.quorum", prop.getProperty("hbase_quorum")) //"kylin-node4,kylin-node3,kylin-node2"
+        HBconf.set("hbase.zookeeper.quorum", prop.getProperty("hbase_quorum"))
         HBconf.set("zookeeper.znode.parent", prop.getProperty("hbase_znode"))
         if (Type.contains("P"))
             HBconf.set(TableInputFormat.INPUT_TABLE, prop.getProperty("p_source_table"))

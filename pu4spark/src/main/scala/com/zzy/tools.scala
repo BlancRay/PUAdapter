@@ -34,7 +34,7 @@ object tools {
     }
 
     def getAttributeInfo(modelid: String): (mutable.Map[Int, Int], mutable.Map[Int, Int]) = {
-        val json = "{" + Source.fromFile("E:\\xulei\\zhiziyun\\model\\test\\test\\AttrbuiteJSON.txt").getLines().next() + "}"
+        val json = "{" + Source.fromFile("E:\\model\\test\\test\\AttrbuiteJSON.txt").getLines().next() + "}"
         val featureInfoJson = JSONObject.fromObject(json)
         val nominalInfo = mutable.Map[Int, Int]()
         val attributeInfo = mutable.Map[Int, Int]()

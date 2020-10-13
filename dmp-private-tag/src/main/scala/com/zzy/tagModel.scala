@@ -23,10 +23,10 @@ object tagModel {
         LOG.info("调用算法训练模型")
 
         //设置hadoop目录
-        //        System.setProperty("hadoop.home.dir", "E:\\xulei\\hadoop2.6.0")
+        //        System.setProperty("hadoop.home.dir", "E:\\hadoop2.6.0")
         //        val modelid = "6"
         //        val sc = new SparkContext(new SparkConf().setAppName("RandomForestClassificationTrain").setMaster("local[4]"))
-        //        prop.load(new FileInputStream("E:\\xulei\\IdeaProjects\\dmp-private-tag\\model.properties"))
+        //        prop.load(new FileInputStream("E:\\IdeaProjects\\dmp-private-tag\\model.properties"))
 
         val modelid = args(0)
         val sc = new SparkContext(new SparkConf().setAppName("dmp-private-tag"))
