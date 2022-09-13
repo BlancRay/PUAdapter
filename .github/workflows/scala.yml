@@ -1,0 +1,70 @@
+name: Release CI
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  dmp-private-segment-build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Set up JDK 1.8
+      uses: actions/setup-java@v1
+      with:
+        java-version: 1.8
+    - name: Maven package
+      run: cd ./dmp-private-segment && mvn package -B -DskipTests=true -Dmaven.javadoc.skip=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+    - name: Get current time
+      uses: 1466587594/current-time@v1
+      id: current-time
+      with:
+        format: YYYYMMDD_HHmmss
+        utcOffset: "+08:00"
+    - name : Upload artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: dmp-private-segment_${{ steps.current-time.outputs.formattedTime }}.jar
+        path: dmp-private-segment/target/dmp-private-segment.jar
+  dmp-private-tag-build:
+      runs-on: ubuntu-latest
+      steps:
+      - uses: actions/checkout@master
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+      - name: Maven package
+        run: cd ./dmp-private-tag && mvn package -B -DskipTests=true -Dmaven.javadoc.skip=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+      - name: Get current time
+        uses: 1466587594/current-time@v1
+        id: current-time
+        with:
+          format: YYYYMMDD_HHmmss
+          utcOffset: "+08:00"
+      - name : Upload artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: dmp-private-tag_${{ steps.current-time.outputs.formattedTime }}.jar
+          path:  dmp-private-tag/target/dmp-private-tag.jar
+  pu4spark-build:
+      runs-on: ubuntu-latest
+      steps:
+      - uses: actions/checkout@master
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+      - name: Maven package
+        run: cd ./pu4spark && mvn package -B -DskipTests=true -Dmaven.javadoc.skip=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+      - name: Get current time
+        uses: 1466587594/current-time@v1
+        id: current-time
+        with:
+          format: YYYYMMDD_HHmmss
+          utcOffset: "+08:00"
+      - name : Upload artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: pu4spark_${{ steps.current-time.outputs.formattedTime }}.jar
+          path: pu4spark/target/pu4spark.jar
